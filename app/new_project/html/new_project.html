@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Scraping with Electron</title>
+    <script scr='../../jquery.js'></script>
+    <link href='https://fonts.googleapis.com/css?family=Overpass' rel='stylesheet'>
+    <link rel="stylesheet" href="../css/style.css">
+    </head>
+
+    <body>
+        <div id="new_project" style="height: auto;">
+            <div class="centered_text">
+                <h1>Enter the site link in the input box below</h1>
+            </div>
+            
+            <div class='input_url'>
+                <input id="input_url" type="url" placeholder="www.example.com" pattern="https://.*" required>
+            </div>
+            
+            <div class='two_buttons' style="margin: 10vh">
+                <button class='dual_buttons_input' onclick="previewsite()">Create Project with this link</button>
+                <button class='dual_buttons_input' onclick="mainpage()">Go back to the main page</button>
+            </div>
+        </div>
+        
+        <div class="webpage_preview" id="webpage_preview">
+            <webview class="preview" id="preview"></webview>
+            
+            <div class="white_box" style="top: 50%">
+                <div class="white_box_text">
+                    <h1>IS THIS THE SITE YOU WISH TO SCRAPE FROM?</h1>
+                </div>
+                
+                <div class="white_box_two_buttons">
+                    <button class='dual_buttons_input'  onclick="selectsheet()">Use this webpage</button>
+                    <button class='dual_buttons_input' onclick="newlink()">Use new website Link</button>
+                </div>
+            </div>
+            <!-- <div style="width:100vw;height:100vh;background-color:white;z-index: 1;"></div> -->
+        </div>
+        
+        <div id="select_sheet" class='select_sheet'>
+            <div class="centered_text">
+                <h1>Would you like to prepare a site without an excel file or select the file now?</h1>
+            </div>
+            
+            <div class='two_buttons' style="margin: 10vh auto">
+                <button class='dual_buttons_input' onclick="select_sheet_later()">Select Later</button>
+
+                <button class='dual_buttons_input' onclick="confirmsheet()">Select Now</button>
+                <input id="file_input" type="file" name="name" style="display: none;" accept=".csv, .xlsx"/>
+            </div>
+        </div>
+
+        <!-- <div class="spreadsheet_preview" id="spreadsheet_preview">
+            <iframe class="preview" id="sheet_preview"></iframe>
+            
+            <div class="white_box" style="top: 50%">
+                <div class="white_box_text">
+                    <h1>IS THIS THE SHEET YOU WISH TO USE?</h1>
+                </div>
+
+                <div class="two_buttons" style="margin: -2.5vh auto">
+                    <button class='dual_buttons_input'>Use this spreadsheet</button>
+                    <button class='dual_buttons_input'>Change spreadsheet</button>
+                </div>
+            </div>
+        </div> -->
+
+        <div class="select_data" id="select_data">
+            <div class='white_box_data'>
+                <div class="scraping_list">
+                    <h1 class='url_heading' id="url_heading"></h1>
+                </div>
+                    <button class="scraping_button">START SCRAPING</button>
+            </div>
+        
+            <webview id="web_preview" class="data_prep"></webview>
+
+            <div class='quad_buttons'>
+                <button class='skinnier_buttons'>ADD NEW TEXT ELEMENT</button>
+                <button class='skinnier_buttons'>ADD NEW PAGE LINK</button>
+                <button class='skinnier_buttons'>ADD NEW IMAGE ELEMENT</button>
+                <button class='skinnier_buttons'>CHANGE SPREADSHEET</button>
+            </div>
+        </div>
+
+
+       <script src="../js/new_project.js"></script>
+
+       <script>
+            // const { val } = require('cheerio/lib/api/attributes');
+            // const { ipcRenderer, webFrame } = require('electron')
+
+            // function check_url(str){
+            //     var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
+            //     '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
+            //     '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
+            //     '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
+            //     '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
+            //     '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
+            //     return !!pattern.test(str);
+            // }
+
+            // function previewsite(){
+            //     var url = document.getElementById("input_url").value;
+            //     console.log(check_url(url))
+            //     if (check_url(url) === true){
+            //         // ipcRenderer.send('site_preview')
+            //         var newProject = document.getElementById("new_project");
+            //         newProject.style.display =  "none";
+            //         var webPreview = document.getElementById("webpage_preview");
+            //         document.getElementById("preview").setAttribute("src", url);
+            //         webPreview.style.display = "inline";
+            //         // webContent.display = "inline";
+            //         // document.getElementById("preview").display = "inline";
+            //     }
+            //     else {
+            //         alert("Please enter a valid URL")
+            //     }
+            //     return url
+            // }
+
+            // function mainpage(){
+            //     ipcRenderer.send('main-page');
+            // }
+
+            // function testing(){
+            //     var webContent = document.getElementById("new_project");
+            //     webContent.style.display =  "none";
+            // }
+
+            // function newlink(){
+            //     var newProject = document.getElementById("new_project");
+            //     newProject.style.display =  "inline";
+            //     var webPreview = document.getElementById("webpage_preview");
+            //     webPreview.style.display = "none";
+            // }
+
+            // function selectsheet(){
+            //     document.getElementById("webpage_preview").style.display = "none";
+            //     document.getElementById("select_sheet").style.display = "inline";
+            //     console.log('test')
+            // }
+
+            // function confirmsheet(){
+            //     document.getElementById('file_input').click();
+            //     // var selectedFile = document.getElementById('file_input').selectedFile;
+            //     // print('test')
+            //     // document.getElementById("select_sheet").style.display = "none";
+            //     // document.getElementById("spreadsheet_preview").style.display = "inline";
+            //     // document.getElementById("sheet_preview").setAttribute("src", "https://view.officeapps.live.com/op/embed.aspx?src=file:///C:/Users/rohaa/Documents/loading/ashdene/ladelle.xlsx");
+            //     // var url = document.getElementById("input_url").value;
+            //     // ipcRenderer.send('load-url', url);
+            // }
+
+            // const input = document.getElementById("file_input");
+
+            // input.addEventListener('input', load_new_page)
+
+            // function load_new_page(e) {
+            //     var url = document.getElementById("input_url").value;
+            //     ipcRenderer.send('load-url', url);
+            // }
+       </script>
+       
+    </body>
+</html>     

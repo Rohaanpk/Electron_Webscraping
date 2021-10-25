@@ -1,0 +1,17 @@
+{
+  "name": "scraping",
+  "version": "1.0.0",
+  "license": "MIT",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.2",
+    "electron": "^4.0.7",
+    "exceljs": "^4.3.0",
+    "jquery": "^3.6.0",
+    "xpath": "0.0.32",
+    "xpath-to-css": "^1.0.5"
+  }
+}

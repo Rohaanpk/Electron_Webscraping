@@ -1,0 +1,275 @@
+*{font-family:'Overpass';} 
+body{
+    background-color: #383131;
+    margin: 0;
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+/* webview {
+    float: left;
+    width: 70%;
+    background-color: red;
+    margin: 10px;
+} */
+
+input{
+    font-style: italic;
+    color: #707070;
+    text-align: center;
+    font-size: 8vh;
+    width: 90vw;
+    height: 12vh;
+    background-color: #ffffff;
+    margin:5vw auto 0px;
+    display: block;
+}
+
+.index_button {
+    border: none;
+    color: #707070;
+    margin: 0.5vw;
+    text-align: center;
+    text-decoration: none;
+    font-size: 2vw;
+    background-color: #D3D3D3;
+    width: 45vw;
+    height: 18vh;
+    display: block; 
+    
+}
+
+.logo{
+    width: 50vw;
+}
+
+.button {
+    margin: 0px 2vw;
+    position: absolute;
+    right: 0vh;
+    top: 50%;
+    display: table;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+
+.heading_1 {
+    color: #FFFFFF;
+    font-weight: bold;
+}
+
+.centered_text{
+    color: #FFFFFF;
+    text-align: center;
+    margin: 10vh auto 0px;
+    font-size: 1.83vw;
+    width: 50vw;
+    font-weight: bold;
+}
+
+.white_box {
+    height: 45vh;
+    width: 100vw;
+    background-color: white;
+    position: absolute; 
+    z-index: 1; 
+    display: flex;
+    flex-direction: column;
+/*    align-content: flex-start;*/
+/*    align-items: center;*/
+/*    text-align: center;*/
+/*    justify-content: center;*/
+/*    align-self: center;*/
+/*    margin: auto;*/
+/*    margin: auto;*/
+}
+
+
+.white_box_text {
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    margin: 1% 0px;
+    color: #707070;
+
+/*    font-size: 4vh;*/
+    font-size: 2.02vw;
+    font-weight: bold;
+    height: 30%;
+}
+
+.white_box_two_buttons {
+    display: flex;
+    flex-direction: row;
+    width: 90vw;
+    flex: 1;
+/*    height: 60%;*/
+/*    height: 100%;*/
+/*    min-height: 100%;*/
+/*    height: 100;*/
+/*    bottom: 0px;*/
+/*    align-self: flex-end;*/
+/*    margin-bottom: 0;*/
+    margin: 1% auto;
+    justify-content: space-between;
+    z-index: 2;
+/*    flex: 1;*/
+    
+}
+
+.two_buttons {
+    display: flex;
+    flex-direction: row;
+    height: 25vh;
+    margin: 1% auto;
+    justify-content: space-between;
+    width: 90vw;
+}
+
+.dual_buttons_input {
+    width: 42.5vw;
+/*    height: 25vh;*/
+    background-color: #D3D3D3;
+    height: 100%;
+    font-size: 6vh;
+    font-size: 3.03vw;
+    color: #707070;
+    z-index: 2;
+}
+
+.webpage_preview {
+    display: none;
+    /* left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    position: absolute; 
+    opacity: 0.5; */
+}
+
+.spreadsheet_preview {
+    display: none;
+}
+
+.preview {
+    z-index: 0;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    height: 100vh;
+    width: 100vw;
+    opacity: 0.5;
+    pointer-events: none;
+    user-select: none;
+    /* border-width: 0 0 0 0; */
+    /* margin: auto; */
+    position: absolute;
+    /* background-color: white; */
+}
+
+.testing {
+    z-index: 1;
+    width: 100vw;
+    height: 100vh;
+    background-color: #ffffff;
+    opacity: 0;
+}
+
+.select_sheet {
+    display:none;
+}
+
+.select_data{
+    display:none;
+}
+
+.data_prep {
+    height: 70vh;
+    width: 70vw;
+    opacity: 0.8;
+    position: absolute;
+    right: 0;
+    margin: 5vh;
+    background-color: red;
+}
+
+.white_box_data {
+    background-color: #ffffff;
+    z-index: -1;
+    height: 90vh;
+    margin: 5vh 5vh;
+    width: 22vw;
+    position: absolute
+}
+
+.scraping_button {
+    position:absolute;
+    margin: 5% 5%;
+    align-content: center;
+    display: inline-flex;
+    align-items: center; 
+    background-color: #D3D3D3;
+    font-size: 3.5vw;
+    height: 20vh;
+    width: 90%;
+    color: #707070;
+    z-index: 0;
+    bottom: 0;
+}
+
+.quad_buttons {
+    position: absolute;
+    width: 70vw;
+    height: auto;
+    display: flex;
+    justify-content: space-between;
+    bottom: 0;
+    right: 0;
+    margin: 0 2.8vw 5vh;   
+}
+
+.skinnier_buttons {
+    display: inline-flex;
+    align-items: center; 
+    background-color: #D3D3D3;
+    color: #707070;
+    width: 16vw;
+    height: 18vh;
+    text-align: center;
+    
+    font-size: 4.15vh;
+    font-size: 2.1vw;
+    z-index: 0;
+    text-align: center;
+}
+
+.scraping_list{
+    color: #707070;
+}
+
+.url_heading {
+    text-decoration: underline;
+    text-align: center;
+    margin: 5%;
+    font-size: 2.5vh;
+    font-size: 1.26vw;
+    font-weight: bold;
+    width: 90%;
+    height: 1em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow-y: hidden;
+}
+
+.url_heading::-webkit-scrollbar {
+    display: none;
+}
+
+::placeholder
+{
+    opacity: 0.6
+}
+
