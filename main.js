@@ -7,6 +7,7 @@ const url = require('url')
 const path = require('path')
 const { app, BrowserWindow, ipcMain } = require('electron')
 const { argv0 } = require('process')
+const { ECANCELED } = require('constants')
 let mainWindow = null
 let childWindow = null
 
@@ -63,10 +64,11 @@ app.on('ready', function () {
   })
 
   childWindow.webContents.openDevTools()
-  childWindow.webContents.on('dom-ready', function () {
+  childWindow.webContents.on('did-finish-load', function () {
     console.log('childWindow DOM-READY => send back html')
     childWindow.send('sendbackhtml');
-    childWindow.show()
+
+    // childWindow.show()
   })  
 
   childWindow.on('close', event => {
@@ -110,12 +112,14 @@ ipcMain.on('scrapeurl', (event, arg) => {
   childWindow.loadFile('app/new_project/html/select_data.html')
   // childWindow.loadURL(arg, { userAgent: 'My Super Browser v2.0 Youpi Tralala !' })
   childWindow.send('load-url', arg)
-  childWindow.show()
+  // childWindow.show()
+
   childWindow.webContents.on('dom-ready', function () {
     console.log('childWindow DOM-READY => send back html')
     childWindow.send('load-url', arg)
     console.log(arg)
     childWindow.show()
+    mainWindow.send('load-webview')
   })  
 })
 
@@ -140,5 +144,16 @@ ipcMain.on('synchronous-message', (event, arg) => {
 })
 
 
-// ipcMain.once('')
+ipcMain.on('searchbar', (event, arg) => {
 
+})
+
+ipcMain.on('childWindow-close', (event) => {
+  childWindow.close()
+})
+
+
+ipcMain.on('webview-load', (event) => {
+  // console.log('poop')
+  childWindow.show()
+})

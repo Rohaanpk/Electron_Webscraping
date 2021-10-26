@@ -71,18 +71,19 @@ input.addEventListener('input', load_new_page);
 function load_new_page(e) {
     var url = document.getElementById("input_url").value;
     document.getElementById("web_preview").setAttribute('src', url)
-    document.getElementById("select_sheet").style.display = "none";
-    document.getElementById("select_data").style.display = "inline";
-    ipcRenderer.send('scrapeurl', url);
 }
 
 function select_sheet_later(){
     var url = document.getElementById("input_url").value;
     document.getElementById("web_preview").setAttribute('src', url)
-    document.getElementById("select_sheet").style.display = "none";
-    document.getElementById("select_data").style.display = "inline";
-    ipcRenderer.send('scrapeurl', url);
 }
+
+document.getElementById("web_preview").addEventListener("dom-ready", event => {
+    var url = document.getElementById("input_url").value;
+    // document.getElementById("select_sheet").style.display = "none";
+    // document.getElementById("select_data").style.display = "inline";
+    ipcRenderer.send('scrapeurl', url);
+})
 
 // webpreview.addEventListener('dom-ready', () => {
 //     webview.setZoomFactor(0.5)
@@ -96,6 +97,11 @@ const webpreview = document.getElementById("web_preview");
 // })
 
 ipcRenderer.on('load-url', (event, arg) =>{
-    console.log('cum')
     console.log(arg)
+})
+
+
+ipcRenderer.on('load-webview', event => {
+    document.getElementById("select_sheet").style.display = "none";
+    document.getElementById("select_data").style.display = "inline";
 })
