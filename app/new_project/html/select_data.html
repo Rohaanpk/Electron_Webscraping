@@ -14,6 +14,12 @@
     <body>
         <webview id='select_data' style="height: 100vh;" preload="../js/preload.js"></webview>
         
+        <div class="white_box" style="top: 50%; opacity: 1; height:30vh;">
+            <div class="white_box_text">
+                <h1>Please click on the Searchbar of the site</h1>
+            </div>
+        </div>
+
         <script>
             const { ipcRenderer, webFrame, webContents } = require('electron')
 
@@ -22,21 +28,12 @@
                 console.log(arg);
             })
 
+            const webview = document.querySelector('webview')
 
-            // const { ipcRenderer, webFrame } = require('electron')
-
-            // const webpreview = document.getElementById("web_preview")
-
-            // webpreview.addEventListener('dom-ready', () => {
-            //     webview.setZoomFactor(0.5)
-            // })
-
-            // ipcRenderer.on('pass-through-url', (event, arg) => {
-            //     console.log('before')
-            //     document.getElementById("web_preview").setAttribute('src', arg)
-            //     console.log('after')
-            //     console.log(arg)
-            // })
+            webview.addEventListener("did-stop-loading", event => {
+                ipcRenderer.send('webview-load')
+                console.log('loaded');
+            })
         </script>
         <script src="../js/data_select.js"></script>
     </body>
