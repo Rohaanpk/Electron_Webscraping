@@ -17,11 +17,8 @@ function previewsite(){
     console.log(check_url(url))
     if (check_url(url) === true){
         // ipcRenderer.send('site_preview')
-        var newProject = document.getElementById("new_project");
-        newProject.style.display =  "none";
         var webPreview = document.getElementById("webpage_preview");
         document.getElementById("preview").setAttribute("src", url);
-        webPreview.style.display = "inline";
         // webContent.display = "inline";
         // document.getElementById("preview").display = "inline";
         document.getElementById("url_heading").innerHTML = url;
@@ -31,6 +28,13 @@ function previewsite(){
     }
     return url
 }
+
+document.getElementById("preview").addEventListener("dom-ready", event => {
+    var newProject = document.getElementById("new_project");
+    newProject.style.display =  "none";
+    var webPreview = document.getElementById("site_preview");
+    webPreview.style.display = "inline";
+})
 
 function mainpage(){
     ipcRenderer.send('main-page');
@@ -49,7 +53,7 @@ function newlink(){
 }
 
 function selectsheet(){
-    document.getElementById("webpage_preview").style.display = "none";
+    document.getElementById("site_preview").style.display = "none";
     document.getElementById("select_sheet").style.display = "inline";
 }
 
@@ -100,8 +104,18 @@ ipcRenderer.on('load-url', (event, arg) =>{
     console.log(arg)
 })
 
+ipcRenderer.on('asynchronous-reply', (event, arg) =>{
+    console.log(arg)
+})
+
 
 ipcRenderer.on('load-webview', event => {
     document.getElementById("select_sheet").style.display = "none";
     document.getElementById("select_data").style.display = "inline";
 })
+
+
+ipcRenderer.on('print-search', (event, arg) =>{
+    console.log(arg)
+})
+

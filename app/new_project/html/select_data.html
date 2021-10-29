@@ -12,28 +12,76 @@
 
     </style>
     <body>
-        <webview id='select_data' style="height: 100vh;" preload="../js/preload.js"></webview>
+        <webview id='select_data' style="height: 100vh;" preload="../js/preload.js"​></webview>
         
-        <div class="white_box" style="top: 50%; opacity: 1; height:30vh;">
+        <div id='white_content_box' class="white_box" style="top: 50%; opacity: 1; height:30vh;">
             <div class="white_box_text">
                 <h1>Please click on the Searchbar of the site</h1>
             </div>
         </div>
+        
+        <div id='search_check' class="centered_white_box" style="display: none; z-index: 4;">
+            <h1 class='white_box_text' style="padding: 10px;">The Element you clicked was not a input-box would you like to add this as an element to click before the searchbar?</h1>
+            
+            <div class="white_box_two_buttons" style="height: 50%">
+                    <button class='dual_buttons_input'  onclick="clickbeforesearch()">Yes</button>
+                    <button class='dual_buttons_input' onclick="reclicksearch()">No</button>
+            </div>
+        </div>
+        
+        
+
 
         <script>
-            const { ipcRenderer, webFrame, webContents } = require('electron')
+            const { ipcRenderer, webFrame, webContents, contextBridge } = require('electron')
+            const webview = document.querySelector('webview')
+            // window.setAudioMuted(muted)​;    
+            
+            function showalert() {
+                document.getElementById('search_check').style.display = 'inline';
+                document.getElementById('white_content_box').style.display = 'none';
+            }
+            
+            function hidealert() {
+                document.getElementById('search_check').style.display = 'none';
+                document.getElementById('white_content_box').style.display = 'inline';
+            }
 
             ipcRenderer.on('load-url', (event, arg) => {
-                document.getElementById('select_data').setAttribute('src', arg);
+                webview.setAttribute('src', arg);
+                // webview.setAudioMuted(muted);
+                // window.setAudioMuted(muted)​;
+                // window.isAudioMuted();
+                // IMPORTANT MUTE
                 console.log(arg);
-            })
 
-            const webview = document.querySelector('webview')
-
-            webview.addEventListener("did-stop-loading", event => {
-                ipcRenderer.send('webview-load')
-                console.log('loaded');
             })
+            
+            function clickbeforesearch() {
+                hidealert();
+                ipcRenderer.send('search-test', search_temporary)
+            }
+            
+            function reclicksearch() {
+                hidealert();
+            }
+            
+            
+            ipcRenderer.on('wrong-search', (event, arg) =>{
+                showalert();
+                var search_temporary = arg
+                return search_temporary
+            })
+            
+            // const webview = document.querySelector('webview')
+
+            // webview.addEventListener("did-stop-loading", event => {
+            //     ipcRenderer.send('webview-load');
+            //     console.log('loaded');
+            //     window.myAPI.doAThing()
+            // })
+            
+            
         </script>
         <script src="../js/data_select.js"></script>
     </body>
