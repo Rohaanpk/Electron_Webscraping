@@ -5,9 +5,10 @@
 
 const url = require('url')
 const path = require('path')
-const { app, BrowserWindow, ipcMain } = require('electron')
+const { app, BrowserWindow, ipcMain, ipcRenderer } = require('electron')
 const { argv0 } = require('process')
 const { ECANCELED } = require('constants')
+const { testElement } = require('domutils')
 let mainWindow = null
 let childWindow = null
 
@@ -28,7 +29,10 @@ app.on('ready', function () {
     center: true,
     minWidth: 1280,
     minHeight: 720,
-    show: false
+    show: false,
+    webPreferences: {
+      nodeIntegration: true
+    }
   })
 
 
@@ -148,12 +152,16 @@ ipcMain.on('searchbar', (event, arg) => {
 
 })
 
-ipcMain.on('childWindow-close', (event) => {
+ipcMain.on('childWindow-close', (event, arg) => {
   childWindow.close()
 })
 
 
-ipcMain.on('webview-load', (event) => {
-  // console.log('poop')
-  childWindow.show()
+// Displays Searchbar select error
+ipcMain.on('no-searchclick', (event, arg) => {
+  childWindow.webContents.send('wrong-search', arg);
+})
+
+ipcMain.on('search-test', (event, arg) => {
+  mainWindow.webContents.send('print-search', arg)
 })

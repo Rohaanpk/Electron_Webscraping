@@ -1,5 +1,5 @@
 const { val } = require('cheerio/lib/api/attributes');
-const { ipcRenderer, webFrame, webviewTag } = require('electron')
+const { ipcRenderer, webFrame, webviewTag, contextBridge } = require('electron')
 const xPathToCss = require('xpath-to-css')
 
 window.onload = function() {
@@ -125,12 +125,22 @@ document.addEventListener("click", event => {
         ipcRenderer.send('asynchronous-message', XPath);
         // ipcRenderer.send('asynchronous-message', text);
         ipcRenderer.send('searchbar', text);
-        ipcRenderer.send('childWindow-close');
-
+        ipcRenderer.send('childWindow-close', XPath);
         // ipcRenderer.send('webview-load');
     }
     else {
-        alert("Please click on a Input Box");
+        //   contextBridge.exposeInMainWorld('myAPI', {
+        //     doAThing: () => {
+        //         document.getElementById('search_check').style.display = "inline";
+        //     }
+        //   })
+        // window.myAPI = {
+        //     doAThing: () => {
+        //         document.getElementById('search_check').style.display = "inline";
+        //     }
+        // }
+        var XPath = createXPathFromElement(event.target);
+        ipcRenderer.send('no-searchclick', XPath);
     }
     // var value = createXPathFromElement(searchbar.target);
     // console.log(value);
