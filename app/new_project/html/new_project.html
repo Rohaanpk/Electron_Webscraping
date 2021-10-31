@@ -35,18 +35,18 @@
                 
                 <div class="white_box_two_buttons">
                     <button class='dual_buttons_input'  onclick="selectsheet()">Use this webpage</button>
-                    <button class='dual_buttons_input' onclick="newlink()">Use new website Link</button>
+                    <button class='dual_buttons_input' onclick="newlink()">Use different website Link</button>
                 </div>
             </div>
             <!-- <div style="width:100vw;height:100vh;background-color:white;z-index: 1;"></div> -->
         </div>
         
-        <div id="select_sheet" class='select_sheet'>
-            <div class="centered_text" >
+        <div id="select_sheet" class='select_sheet' style="display: none;">
+            <div class="centered_text">
                 <h1>Would you like to prepare a site without an excel file or select the file now?</h1>
             </div>
             
-            <div class='two_buttons' style="margin: 15vh auto">
+            <div class='two_buttons' style="margin: 15vh auto;">
                 <button class='dual_buttons_input' onclick="select_sheet_later()">Select Later</button>
 
                 <button class='dual_buttons_input' onclick="confirmsheet()">Select Now</button>
@@ -69,7 +69,7 @@
             </div>
         </div> -->
 
-        <div class="select_data" id="select_data">
+        <div style="display:none;" id="select_data">
             <div class='white_box_data'>
                 <div class="scraping_list">
                     <h1 class='url_heading' id="url_heading"></h1>
@@ -80,9 +80,9 @@
             <webview id="web_preview" class="data_prep"></webview>
 
             <div class='quad_buttons'>
-                <button class='skinnier_buttons'>ADD NEW TEXT ELEMENT</button>
+                <button class='skinnier_buttons' onclick="new_text()">ADD NEW TEXT ELEMENT</button>
+                <button class='skinnier_buttons' onclick="new_img()">ADD NEW IMAGE ELEMENT</button>
                 <button class='skinnier_buttons'>ADD NEW PAGE LINK</button>
-                <button class='skinnier_buttons'>ADD NEW IMAGE ELEMENT</button>
                 <button class='skinnier_buttons'>CHANGE SPREADSHEET</button>
             </div>
         </div>

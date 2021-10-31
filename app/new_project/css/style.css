@@ -193,12 +193,9 @@ input{
 }
 
 .select_sheet {
-    display:none;
+    bottom: 0vh;
 }
 
-.select_data{
-    display:none;
-}
 
 .data_prep {
     height: 70vh;

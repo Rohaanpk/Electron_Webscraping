@@ -84,81 +84,27 @@ function createXPathFromElement(elm) {
     return segs.length ? '/' + segs.join('/') : null; 
 };
 
-
-// const keys = { "F1": false, "F2": false, "F3": false, "F4": false, "F5": false, "F6": false, "F7": false, "F8": false, "F9": false, "F10": false, "F11": false, "F12": false, "F13": false, "F14": false, "F15": false, "F16": false, "F17": false, "F18": false, "F19": false, "F20": false, "F21": false, "F22": false, "F23": false, "F24": false, "PrintScreen": false, "ScrollLock": false, "Pause": false, "Tab": false, "CapsLock": false, "Shift": false, "Control": false, "Meta": false, "Alt": false, "ContextMenu": false, "ArrowLeft": false, "ArrowRight": false, "ArrowUp": false, "ArrowDown": false, "Enter": false, "Backspace": false, "Clear": false, "NumLock": false, "Insert": false, "Home": false, "PageUp": false, "PageDown": false, "End": false, "Delete": false }
-// document.addEventListener('keydown', function (event) {
-//   if (event.defaultPrevented) {
-//     return
-//   }
-//   return checkKey(event)
-// })
-
-// function checkKey(event) { // block keyboard events such as alt-f4 which could close the window
-//   let key = event.key || event.keyCode;
-//   let val = parseInt(key, 10);
-//   if (typeof val == 'number' ||
-//     keys[key] == false ||
-//     event.altKey ||
-//     event.ctrlKey ||
-//     event.shiftKey ||
-//     event.metaKey ||
-//     event.repeat) {
-//     event.preventDefault()
-//     return false
-//   }
-// }
-
 document.addEventListener("click", event => {
-    if (event.target.tagName === "INPUT") {
-        console.log('test');
+    if (event.target.tagName === "IMG") {
         var XPath = createXPathFromElement(event.target);
-        // console.log(XPath);
-        // console.log(searchbar); 
-        window.localStorage.my_testing_var = XPath;
         var css = xPathToCss(XPath);
-        // console.log(css);
         var element = document.querySelector(css);
-        // console.log(element.textContent);
-        var text = element.textContent;
-        console.log(element.href);
-        console.log(element.src);
-        ipcRenderer.send('asynchronous-message', XPath);
-        // ipcRenderer.send('asynchronous-message', text);
+        ipcRenderer.send('img_xpath', text);
         ipcRenderer.send('childWindow-close', XPath);
-        // ipcRenderer.send('webview-load');
+    }
+    else if (event.target.tagName === "A") {
+        var XPath = createXPathFromElement(event.target);
+        var css = xPathToCss(XPath);
+        var element = document.querySelector(css);
+        ipcRenderer.send('img_xpath', text);
+        ipcRenderer.send('childWindow-close', XPath);
     }
     else {
-        //   contextBridge.exposeInMainWorld('myAPI', {
-        //     doAThing: () => {
-        //         document.getElementById('search_check').style.display = "inline";
-        //     }
-        //   })
-        // window.myAPI = {
-        //     doAThing: () => {
-        //         document.getElementById('search_check').style.display = "inline";
-        //     }
-        // }
         var XPath = createXPathFromElement(event.target);
         ipcRenderer.send('no-searchclick', XPath);
     }
-    // var value = createXPathFromElement(searchbar.target);
-    // console.log(value);
-    // console.log(searchbar); 
-    // window.localStorage.my_testing_var = value;
-    // var css = xPathToCss(value);
-    // console.log(css);
-    // var element = document.querySelector(css);
-    // console.log(element.textContent);
-    // var text = element.textContent;
-    // console.log(element.href);
-    // console.log(element.src);
-    // ipcRenderer.send('asynchronous-message', value);
-    // ipcRenderer.send('asynchronous-message', text);
-    // window.close();
 }); // Read Xpath on click
 
-// // Synchronous message emmiter and handler
-// console.log(ipcRenderer.sendSync('synchronous-message', 'sync ping')) 
 
 // Async message handler
 ipcRenderer.on('asynchronous-reply', (event, arg) => {
