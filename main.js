@@ -114,9 +114,7 @@ ipcMain.on('main-page', (event) => {
 
 ipcMain.on('scrapeurl', (event, arg) => {
   childWindow.loadFile('app/new_project/html/select_data.html')
-  // childWindow.loadURL(arg, { userAgent: 'My Super Browser v2.0 Youpi Tralala !' })
   childWindow.send('load-url', arg)
-  // childWindow.show()
 
   childWindow.webContents.on('dom-ready', function () {
     console.log('childWindow DOM-READY => send back html')
@@ -147,15 +145,9 @@ ipcMain.on('synchronous-message', (event, arg) => {
   event.returnValue = 'sync pong'
 })
 
-
-ipcMain.on('searchbar', (event, arg) => {
-
-})
-
 ipcMain.on('childWindow-close', (event, arg) => {
   childWindow.close()
 })
-
 
 // Displays Searchbar select error
 ipcMain.on('no-searchclick', (event, arg) => {
@@ -164,4 +156,36 @@ ipcMain.on('no-searchclick', (event, arg) => {
 
 ipcMain.on('search-test', (event, arg) => {
   mainWindow.webContents.send('print-search', arg)
+})
+
+ipcMain.on('new_text_element', (event, arg) => {
+  childWindow.loadFile('app/new_project/html/select_text.html')
+  childWindow.send('load-url', arg)
+
+  childWindow.webContents.on('dom-ready', function () {
+    console.log('childWindow DOM-READY => send back html')
+    childWindow.send('load-url', arg)
+    console.log(arg)
+    childWindow.show()
+  }) 
+})
+
+ipcMain.on('new_img_element', (event, arg) => {
+  childWindow.loadFile('app/new_project/html/select_img.html')
+  childWindow.send('load-url', arg)
+
+  childWindow.webContents.on('dom-ready', function () {
+    console.log('childWindow DOM-READY => send back html')
+    childWindow.send('load-url', arg)
+    console.log(arg)
+    childWindow.show()
+  }) 
+})
+
+ipcMain.on('img_xpath', (event, arg) => {
+  mainWindow.send('img_xpath', arg)
+})
+
+ipcMain.on('text_xpath', (event, arg) => {
+  mainWindow.send('text_xpath', arg)
 })

@@ -1,6 +1,26 @@
 const { val } = require('cheerio/lib/api/attributes');
 const { text } = require('cheerio/lib/api/manipulation');
-const { ipcRenderer, webFrame, webContents } = require('electron')
+const { ipcRenderer, webFrame, webContents, ipcMain } = require('electron')
+const text_array = []
+const img_array = []
+const webpreview = document.getElementById("web_preview");
+
+
+document.getElementById("file_input").addEventListener('input', load_new_page);
+
+document.getElementById("preview").addEventListener("dom-ready", event => {
+    var newProject = document.getElementById("new_project");
+    newProject.style.display =  "none";
+    var webPreview = document.getElementById("site_preview");
+    webPreview.style.display = "inline";
+})
+
+// document.getElementById("web_preview").addEventListener("dom-ready", event => {
+//     var url = document.getElementById("input_url").value;
+//     // document.getElementById("select_sheet").style.display = "none";
+//     // document.getElementById("select_data").style.display = "inline";
+//     ipcRenderer.send('scrapeurl', url);
+// })
 
 function check_url(str){
     var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
@@ -29,32 +49,19 @@ function previewsite(){
     return url
 }
 
-document.getElementById("preview").addEventListener("dom-ready", event => {
-    var newProject = document.getElementById("new_project");
-    newProject.style.display =  "none";
-    var webPreview = document.getElementById("site_preview");
-    webPreview.style.display = "inline";
-})
-
+// load main page
 function mainpage(){
     ipcRenderer.send('main-page');
 }
 
-function testing(){
-    var webContent = document.getElementById("new_project");
-    webContent.style.display =  "none";
-}
-
 function newlink(){
-    var newProject = document.getElementById("new_project");
-    newProject.style.display =  "inline";
-    var webPreview = document.getElementById("webpage_preview");
-    webPreview.style.display = "none";
+    document.getElementById("site_preview").style.display = "none";
+    document.getElementById("new_project").style.display = "block";
 }
 
 function selectsheet(){
     document.getElementById("site_preview").style.display = "none";
-    document.getElementById("select_sheet").style.display = "inline";
+    document.getElementById("select_sheet").style.display = "block";
 }
 
 function confirmsheet(){
@@ -68,37 +75,27 @@ function confirmsheet(){
     // ipcRenderer.send('load-url', url);
 }
 
-const input = document.getElementById("file_input");
-
-input.addEventListener('input', load_new_page);
-
 function load_new_page(e) {
     var url = document.getElementById("input_url").value;
     document.getElementById("web_preview").setAttribute('src', url)
+    ipcRenderer.send('scrapeurl', url);
 }
 
 function select_sheet_later(){
     var url = document.getElementById("input_url").value;
     document.getElementById("web_preview").setAttribute('src', url)
+    ipcRenderer.send('scrapeurl', url);
 }
 
-document.getElementById("web_preview").addEventListener("dom-ready", event => {
-    var url = document.getElementById("input_url").value;
-    // document.getElementById("select_sheet").style.display = "none";
-    // document.getElementById("select_data").style.display = "inline";
-    ipcRenderer.send('scrapeurl', url);
-})
+function new_text(){
+    var url = webpreview.getURL()
+    ipcRenderer.send('new_text_element', url);
+}
 
-// webpreview.addEventListener('dom-ready', () => {
-//     webview.setZoomFactor(0.5)
-// })
-
-const webpreview = document.getElementById("web_preview");
-
-// webpreview.webContents.on('dom-ready', function () {
-//     var input = document.getElementById("file_input").value;
-//     ipcRenderer.send('scrapeurl', input)
-// })
+function new_img(){
+    var url = webpreview.getURL()
+    ipcRenderer.send('new_img_element', url);
+}
 
 ipcRenderer.on('load-url', (event, arg) =>{
     console.log(arg)
@@ -119,3 +116,23 @@ ipcRenderer.on('print-search', (event, arg) =>{
     console.log(arg)
 })
 
+ipcRenderer.on('img_xpath', (event, arg) => {
+    img_array.push(arg);
+})
+
+ipcRenderer.on('text_xpath', (event, arg) => {
+    text_array.push(arg);
+    console.log(text_array)
+})
+
+
+// webpreview.addEventListener('dom-ready', () => {
+//     webview.setZoomFactor(0.5)
+// })
+
+
+
+// webpreview.webContents.on('dom-ready', function () {
+//     var input = document.getElementById("file_input").value;
+//     ipcRenderer.send('scrapeurl', input)
+// })

@@ -12,30 +12,28 @@
 
     </style>
     <body>
-        <webview id='select_data' style="height: 100vh; opacity: 0.5;" preload="../js/preload.js"​></webview>
+        <webview id='select_data' style="height: 100vh; opacity: 0.5;" preload="../js/img_preload.js"​></webview>
         
         <div id='white_content_box' class="white_box" style="top: 50%; opacity: 1; height:30vh;">
             <div class="white_box_text">
-                <h1>Please click on the Searchbar of the site</h1>
+                <h1>Please click on the image element you wish to scrape</h1>
             </div>
         </div>
         
         <div id='search_check' class="centered_white_box" style="display: none; z-index: 4;">
-            <h1 class='white_box_text' style="padding: 10px;">The Element you clicked was not a input-box would you like to add this as an element to click before the searchbar?</h1>
+            <h1 class='white_box_text' style="padding: 10px;">The Element you clicked was not a Image.</h1>
             
             <div class="white_box_two_buttons" style="height: 50%">
                     <button class='dual_buttons_input'  onclick="clickbeforesearch()">Yes</button>
                     <button class='dual_buttons_input' onclick="reclicksearch()">No</button>
             </div>
         </div>
-        
-        
 
 
         <script>
             const { ipcRenderer, webFrame, webContents, contextBridge } = require('electron')
             const webview = document.querySelector('webview')
-            // window.setAudioMuted(muted)​;    
+
             
             var search_temporary = 'placeholder'
 
@@ -73,17 +71,6 @@
                 showalert();
                 search_temporary = arg
             })
-            
-            // const webview = document.querySelector('webview')
-
-            // webview.addEventListener("did-stop-loading", event => {
-            //     ipcRenderer.send('webview-load');
-            //     console.log('loaded');
-            //     window.myAPI.doAThing()
-            // })
-            
-            
         </script>
-        <script src="../js/data_select.js"></script>
     </body>
 </html>
