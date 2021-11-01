@@ -87,6 +87,11 @@ function select_sheet_later(){
     ipcRenderer.send('scrapeurl', url);
 }
 
+function product_link(){
+    var url = webpreview.getURL();
+    ipcRenderer.send('product_link', url);
+}
+
 function new_text(){
     var url = webpreview.getURL()
     ipcRenderer.send('new_text_element', url);

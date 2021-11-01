@@ -12,29 +12,51 @@
 
     </style>
     <body>
-        <webview id='select_data' style="height: 100vh; opacity: 0.5;" preload="../js/preload.js"​></webview>
-        
-        <div id='white_content_box' class="white_box" style="top: 50%; opacity: 1; height:30vh;">
-            <div class="white_box_text">
-                <h1>Please click on the Searchbar of the site</h1>
-            </div>
-        </div>
-        
-        <div id='search_check' class="centered_white_box" style="display: none; z-index: 4;">
-            <h1 class='white_box_text' style="padding: 10px;">The Element you clicked was not a input-box would you like to add this as an element to click before the searchbar?</h1>
+        <div id="searchbar_div">
+            <webview id='webview_search' style="height: 100vh; opacity: 0.5;" preload="../js/search_preload.js"​></webview>
             
-            <div class="white_box_two_buttons" style="height: 50%">
-                    <button class='dual_buttons_input'  onclick="clickbeforesearch()">Yes</button>
-                    <button class='dual_buttons_input' onclick="reclicksearch()">No</button>
+            <div id='white_content_box' class="white_box" style="top: 50%; opacity: 1; height:30vh;">
+                <div class="white_box_text">
+                    <h1>Please click on the Searchbar of the site</h1>
+                </div>
+            </div>
+            
+            <div id='search_check' class="centered_white_box" style="display: none; z-index: 4;">
+                <h1 class='white_box_text' style="padding: 10px;">The Element you clicked was not a input-box would you like to add this as an element to click before the searchbar?</h1>
+                
+                <div class="white_box_two_buttons" style="height: 50%">
+                        <button class='dual_buttons_input'  onclick="clickbeforesearch()">Yes</button>
+                        <button class='dual_buttons_input' onclick="reclicksearch()">No</button>
+                </div>
             </div>
         </div>
-        
-        
 
+
+        <div id="pagelink_div" style="display: none;">
+            <webview id='webview_link' style="height: 100vh; opacity: 0.5;" preload="../js/pagelink_preload.js"​></webview>
+            
+            <div id='white_content_box' class="white_box" style="top: 50%; opacity: 1; height:30vh;">
+                <div class="white_box_text">
+                    <h1>Please click on a page link of the site of the site</h1>
+                </div>
+            </div>
+
+            
+            <div id='search_check' class="centered_white_box" style="display: none; z-index: 4;">
+                <h1 class='white_box_text' style="padding: 10px;">The Element you clicked was not a link element, would u like to click again?</h1>
+                
+                <div class="white_box_two_buttons" style="height: 50%">
+                        <button class='dual_buttons_input'  onclick="">Yes</button>
+                        <button class='dual_buttons_input' onclick="">No</button>
+                </div>
+            </div>
+        </div>
 
         <script>
-            const { ipcRenderer, webFrame, webContents, contextBridge } = require('electron')
-            const webview = document.querySelector('webview')
+            const { ipcRenderer, webFrame, webContents, contextBridge } = require('electron');
+            const webview_search = document.getElementById('webview_search');
+            const webview_link = document.getElementById('webview_link');
+            
             // window.setAudioMuted(muted)​;    
             
             var search_temporary = 'placeholder'
@@ -49,14 +71,11 @@
                 document.getElementById('white_content_box').style.display = 'flex';
             }
 
-            ipcRenderer.on('load-url', (event, arg) => {
-                webview.setAttribute('src', arg);
-                // webview.setAudioMuted(muted);
-                // window.setAudioMuted(muted)​;
-                // window.isAudioMuted();
-                // IMPORTANT MUTE
+            ipcRenderer.on('load_searchbar', (event, arg) => {
+                webview_search.setAttribute('src', arg);
+                document.getElementById('searchbar_div').style.display = "inline" 
+                document.getElementById('pagelink_div').style.display = "none" 
                 console.log(arg);
-
             })
             
             function clickbeforesearch() {
@@ -73,16 +92,12 @@
                 showalert();
                 search_temporary = arg
             })
-            
-            // const webview = document.querySelector('webview')
 
-            // webview.addEventListener("did-stop-loading", event => {
-            //     ipcRenderer.send('webview-load');
-            //     console.log('loaded');
-            //     window.myAPI.doAThing()
-            // })
-            
-            
+            ipcRenderer.on('load_product_link', (event, arg) => {
+                webview_link.setAttribute('src', arg);
+                document.getElementById('searchbar_div').style.display = "none" 
+                document.getElementById('pagelink_div').style.display = "inline"  
+            })
         </script>
         <script src="../js/data_select.js"></script>
     </body>

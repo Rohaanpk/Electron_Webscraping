@@ -49,10 +49,7 @@
 
             ipcRenderer.on('load-url', (event, arg) => {
                 webview.setAttribute('src', arg);
-                // webview.setAudioMuted(muted);
-                // window.setAudioMuted(muted)​;
-                // window.isAudioMuted();
-                // IMPORTANT MUTE
+
                 console.log(arg);
 
             })

@@ -114,18 +114,18 @@ ipcMain.on('main-page', (event) => {
 
 ipcMain.on('scrapeurl', (event, arg) => {
   childWindow.loadFile('app/new_project/html/select_data.html')
-  childWindow.send('load-url', arg)
+  childWindow.send('load_searchbar', arg)
 
   childWindow.webContents.on('dom-ready', function () {
     console.log('childWindow DOM-READY => send back html')
-    childWindow.send('load-url', arg)
+    childWindow.send('load_searchbar', arg)
     console.log(arg)
     childWindow.show()
     mainWindow.send('load-webview')
   })  
 })
 
-ipcMain.on('hereishtml', (event, html) => {
+ipcMain.on('hereishtml', (event, html) => {load
   mainWindow.send('extracthtml', html)
 })
 
@@ -172,20 +172,28 @@ ipcMain.on('new_text_element', (event, arg) => {
 
 ipcMain.on('new_img_element', (event, arg) => {
   childWindow.loadFile('app/new_project/html/select_img.html')
-  childWindow.send('load-url', arg)
+  childWindow.send('load_searchbar', arg)
 
   childWindow.webContents.on('dom-ready', function () {
     console.log('childWindow DOM-READY => send back html')
-    childWindow.send('load-url', arg)
+    childWindow.send('load_searchbar', arg)
     console.log(arg)
     childWindow.show()
   }) 
 })
 
+ipcMain.on('product_link', (event, arg) => {
+  childWindow.send('product_link', arg)
+})
+
 ipcMain.on('img_xpath', (event, arg) => {
   mainWindow.send('img_xpath', arg)
+  console.log(arg)
 })
 
 ipcMain.on('text_xpath', (event, arg) => {
   mainWindow.send('text_xpath', arg)
+  console.log(arg)
 })
+
+
