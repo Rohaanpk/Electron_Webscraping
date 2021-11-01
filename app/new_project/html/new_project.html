@@ -10,7 +10,7 @@
     </head>
 
     <body>
-        <div id="new_project" style="height: auto;">
+        <div id="new_project" style="height: auto; display: inline;">
             <div class="centered_text">
                 <h1>Enter the site link in the input box below</h1>
             </div>
@@ -70,11 +70,11 @@
         </div> -->
 
         <div style="display:none;" id="select_data">
-            <div class='white_box_data'>
-                <div class="scraping_list">
+            <div class='white_box_left'>
+                <ul class="scraping_list" id="scraping_list">
                     <h1 class='url_heading' id="url_heading"></h1>
-                </div>
-                    <button class="scraping_button">START SCRAPING</button>
+                </ul>
+                    <button class="scraping_button" onclick="scrape_data()">START SCRAPING</button>
             </div>
         
             <webview id="web_preview" class="data_prep"></webview>
@@ -86,7 +86,18 @@
                 <button class='skinnier_buttons'>CHANGE SPREADSHEET</button>
             </div>
         </div>
+        
+        <div style="display: none;">
+            <div class="white_box_left">
+                <button class="scraping_button">PAUSE SCRAPING</button>
+            </div>
+            
+            <div class="scraping_preview">
 
+                <webview class="scraping_site_preview"></webview>
+            </div>
+            
+        </div>
 
        <script src="../js/new_project.js"></script>
     </body>

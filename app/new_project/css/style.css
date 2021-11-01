@@ -207,7 +207,7 @@ input{
     background-color: red;
 }
 
-.white_box_data {
+.white_box_left {
     background-color: #ffffff;
     z-index: -1;
     height: 90vh;
@@ -258,13 +258,16 @@ input{
 }
 
 .scraping_list{
+    padding: 0;
+    list-style-type: none;
     color: #707070;
+    
 }
 
 .url_heading {
     text-decoration: underline;
     text-align: center;
-    margin: 5%;
+     margin: 5%; 
     font-size: 2.5vh;
     font-size: 1.26vw;
     font-weight: bold;
@@ -278,6 +281,22 @@ input{
 
 .url_heading::-webkit-scrollbar {
     display: none;
+}
+
+.scraping_preview {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.scraping_site_preview {
+    height: 80vh;
+    width: 70vw;
+    opacity: 0.8;
+    margin: 5vh;
+    background-color: red;
 }
 
 ::placeholder
