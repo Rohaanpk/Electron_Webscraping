@@ -139,8 +139,7 @@ wbInput.addEventListener("change", (evt) => {
     console.log(columnA);
 
     for (i  = 1; i < columnA.length; i++) {
-        const searchBar = getElementByXpath(searchbar_xpath)
-        searchBar.sendK
+        // const searchBar = getElementByXpath(searchbar_xpath)
         console.log(columnA[i])
     }
   

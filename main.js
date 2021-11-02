@@ -160,7 +160,6 @@ ipcMain.on('search-test', (event, arg) => {
 
 ipcMain.on('new_text_element', (event, arg) => {
   childWindow.loadFile('app/new_project/html/select_text.html')
-  childWindow.send('load-url', arg)
 
   childWindow.webContents.on('dom-ready', function () {
     console.log('childWindow DOM-READY => send back html')
@@ -172,11 +171,10 @@ ipcMain.on('new_text_element', (event, arg) => {
 
 ipcMain.on('new_img_element', (event, arg) => {
   childWindow.loadFile('app/new_project/html/select_img.html')
-  childWindow.send('load_searchbar', arg)
 
   childWindow.webContents.on('dom-ready', function () {
     console.log('childWindow DOM-READY => send back html')
-    childWindow.send('load_searchbar', arg)
+    childWindow.send('load-url', arg)
     console.log(arg)
     childWindow.show()
   }) 
