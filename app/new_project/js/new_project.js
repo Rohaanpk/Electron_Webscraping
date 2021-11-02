@@ -1,5 +1,6 @@
 const { val } = require('cheerio/lib/api/attributes');
 const { text } = require('cheerio/lib/api/manipulation');
+const { get } = require('cheerio/lib/api/traversing');
 const { ipcRenderer, webFrame, webContents, ipcMain } = require('electron')
 const fs = require("fs")
 const XLSX = require("xlsx")
@@ -14,6 +15,10 @@ document.getElementById("preview").addEventListener("dom-ready", event => {
     var webPreview = document.getElementById("site_preview");
     webPreview.style.display = "inline";
 })
+
+function getElementByXpath(path) {
+    return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+  }
 
 // document.getElementById("web_preview").addEventListener("dom-ready", event => {
 //     var url = document.getElementById("input_url").value;
@@ -129,12 +134,20 @@ wbInput.addEventListener("change", (evt) => {
         if(z.toString()[0] === 'A'){
           columnA.push(worksheet[z].v);
         }
-      }
+    }
       
-      console.log(columnA);
+    console.log(columnA);
+
+    for (i  = 1; i < columnA.length; i++) {
+        const searchBar = getElementByXpath(searchbar_xpath)
+        searchBar.sendK
+        console.log(columnA[i])
+    }
   
     // do stuff with workbook
-  }
+
+    load_new_page();
+}
   
 
 
@@ -165,7 +178,7 @@ function new_img(){
     ipcRenderer.send('new_img_element', url);
 }
 
-function scrape_data() {
+function scrape() {
 
     const columnA = [];
 
@@ -205,6 +218,10 @@ ipcRenderer.on('print-search', (event, arg) =>{
 
 ipcRenderer.on('img_xpath', (event, arg) => {
     img_array.push(arg);
+})
+
+ipcRenderer.on('searchXPath', (event, arg) => {
+    var searchbar_xpath = arg
 })
 
 ipcRenderer.on('text_xpath', (event, arg) => {

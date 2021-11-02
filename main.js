@@ -113,7 +113,7 @@ ipcMain.on('main-page', (event) => {
 // })
 
 ipcMain.on('scrapeurl', (event, arg) => {
-  childWindow.loadFile('app/new_project/html/select_data.html')
+  childWindow.loadFile('app/new_project/html/select_search.html')
   childWindow.send('load_searchbar', arg)
 
   childWindow.webContents.on('dom-ready', function () {
@@ -196,4 +196,7 @@ ipcMain.on('text_xpath', (event, arg) => {
   console.log(arg)
 })
 
-
+ipcMain.on('search_xpath', (event, arg) => {
+  console.log(arg)
+  mainWindow.send("searchXPath", arg)
+})
