@@ -159,7 +159,7 @@ async function actOnXLSX (file) {
     
     // do stuff with workbook
 
-    // load_new_page();
+    load_new_page();
 }
   
 
@@ -231,6 +231,13 @@ ipcRenderer.on('print-search', (event, arg) =>{
 
 ipcRenderer.on('img_xpath', (event, arg) => {
     img_array.push(arg);
+    console.log(text_array);
+    const newDiv = document.createElement("p")
+    const newContent = document.createTextNode(arg)
+    newDiv.appendChild(newContent);
+    const currentDiv = document.getElementById("scraping_list");
+    newDiv.contentEditable = 'true'
+    currentDiv.insertBefore(newDiv, currentDiv.lastElementChild.nextSibling);
 })
 
 ipcRenderer.on('searchXPath', (event, arg) => {
