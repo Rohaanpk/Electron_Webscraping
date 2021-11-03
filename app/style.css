@@ -4,14 +4,6 @@ body{
     margin: 0;
 }
 
-
-webview {
-    float: left;
-    width: 70%;
-    background-color: red;
-    margin: 10px;
-}
-
 button {
     border: none;
     color: #707070;
@@ -23,20 +15,16 @@ button {
     width: 45vw;
     height: 18vh;
     display: block; 
-    
 }
 
-.logo{
-    width: 50vw;
+webview {
+    float: left;
+    width: 70%;
+    background-color: red;
+    margin: 10px;
 }
 
-.heading_1 {
-    font-weight: bold;
-    margin: 1vh;
-    font-size: 6.5vh;
-}
-
-.button {
+.buttons {
     margin: 0px 2vw;
     position: absolute;
     right: 0vh;
@@ -46,7 +34,10 @@ button {
     transform: translateY(-50%);
 }
 
-.heading_1 {
+.index-heading {
+    font-weight: bold;
+    margin: 1vh;
+    font-size: 6.5vh;
     color: #FFFFFF;
     font-weight: bold;
 }

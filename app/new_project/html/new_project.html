@@ -11,94 +11,77 @@
 
     <body>
         <div id="new_project" style="height: auto; display: inline;">
-            <div class="centered_text">
+            <div class="centered-text">
                 <h1>Enter the site link in the input box below</h1>
             </div>
             
-            <div class='input_url'>
+            <div class='input-url'>
                 <input id="input_url" type="url" placeholder="www.example.com" pattern="https://.*" required>
             </div>
             
-            <div class='two_buttons' style="margin: 10vh">
-                <button class='dual_buttons_input' onclick="previewsite()">Create Project with this link</button>
-                <button class='dual_buttons_input' onclick="mainpage()">Go back to the main page</button>
+            <div class='two-buttons' style="margin: 10vh">
+                <button class='dual-buttons-input' onclick="previewSite()">Create Project with this link</button>
+                <button class='dual-buttons-input' onclick="mainPage()">Go back to the main page</button>
             </div>
         </div>
         
-        <div class="webpage_preview" id="site_preview">
+        <div class="webpage-preview" id="site_preview">
             <webview class="preview" id="preview"></webview>
             
-            <div class="white_box" style="top: 50%">
-                <div class="white_box_text">
+            <div class="white-box" style="top: 50%">
+                <div class="white-box-text">
                     <h1>IS THIS THE SITE YOU WISH TO SCRAPE FROM?</h1>
                 </div>
                 
-                <div class="white_box_two_buttons">
-                    <button class='dual_buttons_input'  onclick="selectsheet()">Use this webpage</button>
-                    <button class='dual_buttons_input' onclick="newlink()">Use different website Link</button>
+                <div class="white-box-two-buttons">
+                    <button class='dual-buttons-input'  onclick="selectSheetPage()">Use this webpage</button>
+                    <button class='dual-buttons-input' onclick="changeSiteLink()">Use different website Link</button>
                 </div>
             </div>
-            <!-- <div style="width:100vw;height:100vh;background-color:white;z-index: 1;"></div> -->
         </div>
         
-        <div id="select_sheet" class='select_sheet' style="display: none;">
-            <div class="centered_text">
+        <div id="select_sheet" style="display: none;">
+            <div class="centered-text" style=" margin: 15vh auto 0">
                 <h1>Would you like to prepare a site without an excel file or select the file now?</h1>
             </div>
             
-            <div class='two_buttons' style="margin: 15vh auto;">
-                <button class='dual_buttons_input' onclick="select_sheet_later()">Select Later</button>
+            <div class='two-buttons' style="margin: 15vh auto;">
+                <button class='dual-buttons-input' onclick="loadScrapeSelectPage()">Select Later</button>
 
-                <button class='dual_buttons_input' onclick="confirmsheet()">Select Now</button>
-                <input id="file_input" type="file" name="name" style="display: none;" accept=".csv,     .xlsx"/>
+                <button class='dual-buttons-input' onclick="selectSheet()">Select Now</button>
+                <input id="file_input" type="file" name="name" style="display: none;" accept=".csv,.xlsx"/>
             </div>
         </div>
-
-        <!-- <div class="spreadsheet_preview" id="spreadsheet_preview">
-            <iframe class="preview" id="sheet_preview"></iframe>
-            
-            <div class="white_box" style="top: 50%">
-                <div class="white_box_text">
-                    <h1>IS THIS THE SHEET YOU WISH TO USE?</h1>
-                </div>
-
-                <div class="two_buttons" style="margin: -2.5vh auto">
-                    <button class='dual_buttons_input'>Use this spreadsheet</button>
-                    <button class='dual_buttons_input'>Change spreadsheet</button>
-                </div>
-            </div>
-        </div> -->
 
         <div style="display:none;" id="select_data">
-            <div class='white_box_left'>
-                <ul class="scraping_list" id="scraping_list">
-                    <h1 class='url_heading' id="url_heading"></h1>
+            <div class='white-box-left'>
+                <ul class="scraping-list" id="scraping_list">
+                    <h1 class='url-heading' id="url_heading"></h1>
                 </ul>
-                    <button class="scraping_button" onclick="scrape_data()">START SCRAPING</button>
+                    <button class="scraping-button" onclick="scrapingPreview()">START SCRAPING</button>
             </div>
         
-            <webview id="web_preview" class="data_prep"></webview>
+            <webview id="web_preview" class="data-prep"></webview>
 
-            <div class='quad_buttons'>
-                <button class='skinnier_buttons' onclick="product_link()">ADD PRODUCT LINK</button>
-                <button class='skinnier_buttons' onclick="new_text()">ADD NEW TEXT ELEMENT</button>
-                <button class='skinnier_buttons' onclick="new_img()">ADD NEW IMAGE ELEMENT</button>
-                <button class='skinnier_buttons'>CHANGE SPREADSHEET</button>
+            <div class='quad-buttons'>
+                <button class='skinnier-buttons'>ADD NEW PAGE LINK</button>
+                <button class='skinnier-buttons' onclick="newText()">ADD NEW TEXT ELEMENT</button>
+                <button class='skinnier-buttons' onclick="newImg()">ADD NEW IMAGE ELEMENT</button>
+                <button class='skinnier-buttons' onclick="changeSheet()">CHANGE SPREADSHEET</button>
+                <input id="file_change" type="file" name="name" style="display: none;" accept=".csv,.xlsx"/>
             </div>
         </div>
-        
-        <div style="display: none;">
-            <div class="white_box_left">
-                <button class="scraping_button">PAUSE SCRAPING</button>
+
+        <div id="scraping_preview" style="display: none;">
+            <div class="white-box-left">
+                <button class="scraping-button">PAUSE SCRAPING</button>
             </div>
             
-            <div class="scraping_preview">
-
-                <iframe class="scraping_site_preview"></iframe>
+            <div class="scraping-preview">
+                <iframe class="scraping-site-preview"></iframe>
             </div>
             
         </div>
-
        <script src="../js/new_project.js"></script>
     </body>
 </html>     

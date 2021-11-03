@@ -22,12 +22,6 @@ window.onload = function() {
     });    
 }; // Inject Jquery and Disable Links
 
-ipcRenderer.on('sendbackhtml', (event, arg) => {
-    console.log('preload: received sendbackhtml')
-    ipcRenderer.send('hereishtml', document.documentElement.innerHTML)
-  })
-
-
 document.addEventListener('mouseover', function (e) {
     updateMask(e.target);
 }); // Apply mask to hovered element

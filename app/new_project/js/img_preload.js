@@ -34,13 +34,13 @@ function createXPathFromElement(elm) {
 document.addEventListener("click", event => {
     if (event.target.tagName === "IMG") {
         var XPath = createXPathFromElement(event.target);
-        ipcRenderer.send('img_xpath', XPath);
-        ipcRenderer.send('childWindow-close');
+        ipcRenderer.send('imgXpathMain', XPath);
+        ipcRenderer.send('childWindowClose');
     }
     else if (event.target.tagName === "A") {
         var XPath = createXPathFromElement(event.target);
-        ipcRenderer.send('img_xpath', XPath);
-        ipcRenderer.send('childWindow-close');
+        ipcRenderer.send('imgXpathMain', XPath);
+        ipcRenderer.send('childWindowClose');
     }
     else {
         var XPath = createXPathFromElement(event.target);

@@ -14,18 +14,17 @@
     <body>
         <webview id='select_data' style="height: 100vh; opacity: 0.5;" preload="../js/img_preload.js"​></webview>
         
-        <div id='white_content_box' class="white_box" style="top: 50%; opacity: 1; height:30vh;">
-            <div class="white_box_text">
+        <div id='white_content_box' class="white-box" style="top: 50%; opacity: 1; height:30vh;">
+            <div class="white-box-text">
                 <h1>Please click on the image element you wish to scrape</h1>
             </div>
         </div>
         
-        <div id='search_check' class="centered_white_box" style="display: none; z-index: 4;">
-            <h1 class='white_box_text' style="padding: 10px;">The Element you clicked was not a Image.</h1>
+        <div id='search_check' class="white-box-centered" style="display: none; z-index: 3; height: 40vh;">
+            <h1 class='white-box-text' style="padding: 10px;">The Element you clicked was not a Image, please click on a Image element</h1>
             
-            <div class="white_box_two_buttons" style="height: 50%">
-                    <button class='dual_buttons_input'  onclick="clickbeforesearch()">Yes</button>
-                    <button class='dual_buttons_input' onclick="reclicksearch()">No</button>
+            <div class="alert-button-div" style="height: 50%">
+                    <button class="center-button" onclick="clickBeforeSearch()">Ok</button>
             </div>
         </div>
 
@@ -37,38 +36,33 @@
             
             var search_temporary = 'placeholder'
 
-            function showalert() {
+            function showAlert() {
                 document.getElementById('search_check').style.display = 'inline';
                 document.getElementById('white_content_box').style.display = 'none';
             }
             
-            function hidealert() {
+            function hideAlert() {
                 document.getElementById('search_check').style.display = 'none';
                 document.getElementById('white_content_box').style.display = 'flex';
             }
 
-            ipcRenderer.on('load-url', (event, arg) => {
+            ipcRenderer.on('loadImgUrl', (event, arg) => {
                 webview.setAttribute('src', arg);
-                // webview.setAudioMuted(muted);
-                // window.setAudioMuted(muted)​;
-                // window.isAudioMuted();
-                // IMPORTANT MUTE
                 console.log(arg);
-
             })
             
-            function clickbeforesearch() {
-                hidealert();
-                ipcRenderer.send('search-test', search_temporary)
+            function clickBeforeSearch() {
+                hideAlert();
+                ipcRenderer.send('search-test')
             }
             
-            function reclicksearch() {
-                hidealert();
+            function reClickSearch() {
+                hideAlert();
             }
             
             
             ipcRenderer.on('wrong-search', (event, arg) =>{
-                showalert();
+                showAlert();
                 search_temporary = arg
             })
         </script>

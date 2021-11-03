@@ -10,11 +10,11 @@
 
     <body>
 
-        <img class='logo' src="images/logo.png"/>
-        <h1 class='heading_1'>Smartfox Webscraper</h1>
+        <img style="width: 50vw" src="images/logo.png"/>
+        <h1 class='index-heading'>Smartfox Webscraper</h1>
 
-        <div class="button">
-            <button onclick="load_newproject()">Load New Project</button>
+        <div class="buttons">
+            <button onclick="loadNewProject()">Load New Project</button>
             <button onclick="PrintText()">View Usage Instructions</button>
             <button onclick="PrintLink()">Open Output File Folder</button>
         </div>
@@ -22,8 +22,8 @@
         <!-- <script src="js/preload.js"></script> -->
         <script>
             const { ipcRenderer, webFrame } = require('electron')
-            function load_newproject(){
-                ipcRenderer.send('new_project');
+            function loadNewProject(){
+                ipcRenderer.send('newProject');
             }
         </script>
     </body>

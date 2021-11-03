@@ -36,11 +36,11 @@ function createXPathFromElement(elm) {
 document.addEventListener("click", event => {
     if (event.target.innerHTML === "") {
         var tagname = event.target.tagname
-        ipcRenderer.send('no-textclick', tagname);
+        ipcRenderer.send('no-searchclick', tagname);
     }
     else {
     var XPath = createXPathFromElement(event.target);
-    ipcRenderer.send('text_xpath', XPath);
-    ipcRenderer.send('childWindow-close', XPath);
+    ipcRenderer.send('textXpathMain', XPath);
+    ipcRenderer.send('childWindowClose', XPath);
     }
 }); // Read Xpath on click
