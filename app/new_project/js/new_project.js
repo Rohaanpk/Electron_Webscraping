@@ -2,7 +2,8 @@ const { val } = require('cheerio/lib/api/attributes');
 const { text } = require('cheerio/lib/api/manipulation');
 const { get } = require('cheerio/lib/api/traversing');
 const { ipcRenderer, webFrame, webContents, ipcMain } = require('electron')
-const fs = require("fs")
+const fs = require("fs");
+const { parse } = require('path');
 const XLSX = require("xlsx")
 const text_array = []
 const img_array = []
@@ -109,30 +110,43 @@ wbInput.addEventListener("change", (evt) => {
   }, false);
   
   
-  async function actOnXLSX (file) {
+async function actOnXLSX (file) {
     const fileReader = new FileReader();
   
     const data = await new Promise((resolve, reject) => {
         fileReader.onload = () => {
-          resolve(fileReader.result);
+            resolve(fileReader.result);
         };
         fileReader.onerror = reject;
   
         fileReader.readAsArrayBuffer(file);
-      })
-      .finally(() => {
+        })
+    .finally(() => {
         fileReader.onerror = fileReader.onload = null;
       });
-  
+    console.log(data)
     const workbook = XLSX.read(data);
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    console.log(worksheet)
+    // console.log(worksheet)
+    
     
     var columnA = []
-
+    var intChecker = 1
     for (let z in worksheet) {
         if(z.toString()[0] === 'A'){
-          columnA.push(worksheet[z].v);
+            var x = parseInt(z.replace(/A/, ""))
+            cellInt = x + 1
+            // console.log(intChecker, x)
+            // console.log(columnA);
+            if (intChecker == cellInt - 1){
+                columnA.push(worksheet[z].v);
+                console.log(x, worksheet[z].v)
+            }
+            else {
+                columnA.push("")
+                console.log(x - 1, "")
+            }
+            intChecker = cellInt
         }
     }
       
@@ -140,12 +154,12 @@ wbInput.addEventListener("change", (evt) => {
 
     for (i  = 1; i < columnA.length; i++) {
         // const searchBar = getElementByXpath(searchbar_xpath)
-        console.log(columnA[i])
+        // console.log(columnA[i])
     }
-  
+    
     // do stuff with workbook
 
-    load_new_page();
+    // load_new_page();
 }
   
 
