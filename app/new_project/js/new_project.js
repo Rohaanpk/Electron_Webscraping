@@ -173,7 +173,7 @@ ipcRenderer.on('textXpathRenderer', (event, arg) => {
 })
 
 wbChange.addEventListener("change", (evt) => {
-    if (wbChange.files.length === 0)
+    if (wbInput.files.length === 0)
       return;
   
     actOnXLSX(wbChange.files[0]);

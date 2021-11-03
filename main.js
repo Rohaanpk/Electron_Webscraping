@@ -51,7 +51,10 @@ app.on('ready', function () {
       show: false,
       fullscreen: true,
       webPreferences: {
+        // nodeIntegration: true,
+        // preload: path.join(__dirname, 'app/new_project/js/data_select.js')
         nodeIntegration: true,
+        preload: path.join(__dirname, 'app/new_project/js/data_select.js')
       }
   })
 
@@ -138,6 +141,6 @@ ipcMain.on('searchXpath', (event, arg) => {
 })
 
 ipcMain.on('textXpathMain', (event, arg) => {
-  mainWindow.send('textXpathRenderer', arg)
+  mainWindow.send('textXpathRenderermmmmm', arg)
   console.log(arg)
 })

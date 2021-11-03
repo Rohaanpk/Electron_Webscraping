@@ -17,25 +17,8 @@ input {
     margin:5vw auto 0px;
     display: block;
 }
-.alert-button-div { 
-    display: flex;
-    width: 100%;
-    height: 100%;
-    flex: 1;
-    justify-content: center;
-    align-content: center;
-    z-index: 2;
-}
 
-.center-button {
-    width: 50%;
-    background-color: #D3D3D3;
-    height:70%;
-    font-size: 6vh;
-    font-size: 3.03vw;
-    color: #707070;
-    z-index: 2;
-}
+
 
 .centered-text{
     color: #FFFFFF;
