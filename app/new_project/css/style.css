@@ -6,14 +6,7 @@ body{
     overflow-y: hidden;
 }
 
-/* webview {
-    float: left;
-    width: 70%;
-    background-color: red;
-    margin: 10px;
-} */
-
-input{
+input {
     font-style: italic;
     color: #707070;
     text-align: center;
@@ -25,40 +18,9 @@ input{
     display: block;
 }
 
-.index_button {
-    border: none;
-    color: #707070;
-    margin: 0.5vw;
-    text-align: center;
-    text-decoration: none;
-    font-size: 2vw;
-    background-color: #D3D3D3;
-    width: 45vw;
-    height: 18vh;
-    display: block; 
-    
-}
 
-.logo{
-    width: 50vw;
-}
 
-.button {
-    margin: 0px 2vw;
-    position: absolute;
-    right: 0vh;
-    top: 50%;
-    display: table;
-    -ms-transform: translateY(-50%);
-    transform: translateY(-50%);
-}
-
-.heading_1 {
-    color: #FFFFFF;
-    font-weight: bold;
-}
-
-.centered_text{
+.centered-text{
     color: #FFFFFF;
     text-align: center;
     margin: 10vh auto 0px;
@@ -67,104 +29,23 @@ input{
     font-weight: bold;
 }
 
-.white_box {
-    height: 45vh;
-    width: 100vw;
-    background-color: white;
-    position: absolute; 
-    z-index: 1; 
-    display: flex;
-    flex-direction: column;
-    align-content: center;
-/*    align-items: center;*/
-/*    text-align: center;*/
-    justify-content: center;
-/*    align-self: center;*/
-/*    margin: auto;*/
-/*    margin: auto;*/
-    border: #707070;
-    border-width: 2px;
-    border-style: solid;
-}
-
-.centered_white_box {
-    background-color: white;
-    height: 50vh;
-    width: 50vw;
+.data-prep {
+    height: 70vh;
+    width: 70vw;
+    opacity: 0.8;
     position: absolute;
-    top: 25%;
-    left: 25%;
-    border: #707070;
-    border-width: 2px;
-    border-style: solid;
+    right: 0;
+    margin: 5vh;
 }
 
-
-.white_box_text {
-    text-align: center;
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    margin: 1% 0px;
-    color: #707070;
-
-/*    font-size: 4vh;*/
-    font-size: 2.02vw;
-    font-weight: bold;
-    height: 30%;
-}
-
-.white_box_two_buttons {
-    display: flex;
-    flex-direction: row;
-    width: 90%;
-    flex: 1;
-/*    height: 60%;*/
-/*    height: 100%;*/
-/*    min-height: 100%;*/
-/*    height: 100;*/
-/*    bottom: 0px;*/
-/*    align-self: flex-end;*/
-/*    margin-bottom: 0;*/
-    margin: 1% auto;
-    justify-content: space-between;
-    z-index: 2;
-/*    flex: 1;*/
-    
-}
-
-.two_buttons {
-    display: flex;
-    flex-direction: row;
-    height: 25vh;
-    margin: 1% auto;
-    justify-content: space-between;
-    width: 90vw;
-}
-
-.dual_buttons_input {
+.dual-buttons-input {
     width: 47%;
-/*    height: 25vh;*/
     background-color: #D3D3D3;
     height: 100%;
     font-size: 6vh;
     font-size: 3.03vw;
     color: #707070;
     z-index: 2;
-}
-
-.webpage_preview {
-    display: none;
-    /* left: 0;
-    right: 0;
-    margin-left: auto;
-    margin-right: auto;
-    position: absolute; 
-    opacity: 0.5; */
-}
-
-.spreadsheet_preview {
-    display: none;
 }
 
 .preview {
@@ -178,45 +59,21 @@ input{
     opacity: 0.5;
     pointer-events: none;
     user-select: none;
-    /* border-width: 0 0 0 0; */
-    /* margin: auto; */
     position: absolute;
-    /* background-color: white; */
 }
 
-.testing {
-    z-index: 1;
-    width: 100vw;
-    height: 100vh;
-    background-color: #ffffff;
-    opacity: 0;
-}
-
-.select_sheet {
-    bottom: 0vh;
-}
-
-
-.data_prep {
-    height: 70vh;
+.quad-buttons {
+    position: absolute;
     width: 70vw;
-    opacity: 0.8;
-    position: absolute;
+    height: auto;
+    display: flex;
+    justify-content: space-between;
+    bottom: 0;
     right: 0;
-    margin: 5vh;
-    background-color: red;
+    margin: 0 2.8vw 5vh;   
 }
 
-.white_box_left {
-    background-color: #ffffff;
-    z-index: -1;
-    height: 90vh;
-    margin: 5vh 5vh;
-    width: 22vw;
-    position: absolute
-}
-
-.scraping_button {
+.scraping-button {
     position:absolute;
     margin: 5% 5%;
     align-content: center;
@@ -231,18 +88,30 @@ input{
     bottom: 0;
 }
 
-.quad_buttons {
-    position: absolute;
-    width: 70vw;
-    height: auto;
-    display: flex;
-    justify-content: space-between;
-    bottom: 0;
-    right: 0;
-    margin: 0 2.8vw 5vh;   
+.scraping-list {
+    padding: 0;
+    list-style-type: none;
+    color: #707070;
+    
 }
 
-.skinnier_buttons {
+.scraping-preview {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.scraping-site-preview {
+    height: 80vh;
+    width: 70vw;
+    opacity: 0.8;
+    margin: 5vh;
+    background-color: red;
+}
+
+.skinnier-buttons {
     display: inline-flex;
     align-items: center; 
     background-color: #D3D3D3;
@@ -257,14 +126,16 @@ input{
     text-align: center;
 }
 
-.scraping_list{
-    padding: 0;
-    list-style-type: none;
-    color: #707070;
-    
+.two-buttons {
+    display: flex;
+    flex-direction: row;
+    height: 25vh;
+    margin: 1% auto;
+    justify-content: space-between;
+    width: 90vw;
 }
 
-.url_heading {
+.url-heading {
     text-decoration: underline;
     text-align: center;
      margin: 5%; 
@@ -279,28 +150,69 @@ input{
     overflow-y: hidden;
 }
 
-.url_heading::-webkit-scrollbar {
+.url-heading::-webkit-scrollbar {
     display: none;
 }
 
-.scraping_preview {
-    height: 100vh;
+.webpage-preview {
+    display: none;
+}
+
+.white-box {
+    height: 45vh;
     width: 100vw;
+    background-color: white;
+    position: absolute; 
+    z-index: 1; 
     display: flex;
-    align-items: center;
-    justify-content: flex-end;
+    flex-direction: column;
+    align-content: center;
+    justify-content: center;
+    border: #707070;
+    border-width: 2px;
+    border-style: solid;
 }
 
-.scraping_site_preview {
-    height: 80vh;
-    width: 70vw;
-    opacity: 0.8;
-    margin: 5vh;
-    background-color: red;
+.white-box-centered {
+    background-color: white;
+    height: 50vh;
+    width: 50vw;
+    position: absolute;
+    top: 25%;
+    left: 25%;
+    border: #707070;
+    border-width: 2px;
+    border-style: solid;
 }
 
-::placeholder
-{
-    opacity: 0.6
+.white-box-left {
+    background-color: #ffffff;
+    z-index: -1;
+    height: 90vh;
+    margin: 5vh 5vh;
+    width: 22vw;
+    position: absolute
 }
 
+.white-box-text {
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    margin: 1% 0px;
+    color: #707070;
+    font-size: 2.02vw;
+    font-weight: bold;
+    height: 30%;
+}
+
+.white-box-two-buttons {
+    display: flex;
+    flex-direction: row;
+    width: 90%;
+    flex: 1;
+    margin: 1% auto;
+    justify-content: space-between;
+    z-index: 2;
+    
+}

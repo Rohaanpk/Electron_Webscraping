@@ -14,18 +14,18 @@
     <body>
         <webview id='select_data' style="height: 100vh; opacity: 0.5;" preload="../js/text_preload.js"​></webview>
         
-        <div id='white_content_box' class="white_box" style="top: 50%; opacity: 1; height:30vh;">
-            <div class="white_box_text">
+        <div id='white_content_box' class="white-box" style="top: 50%; opacity: 1; height:30vh;">
+            <div class="white-box-text">
                 <h1>Please click on the text element you wish to scrape</h1>
             </div>
         </div>
         
-        <div id='search_check' class="centered_white_box" style="display: none; z-index: 4;">
-            <h1 class='white_box_text' style="padding: 10px;">The Element you clicked was not a input-box would you like to add this as an element to click before the searchbar?</h1>
+        <div id='search_check' class="centered_white-box" style="display: none; z-index: 4;">
+            <h1 class='white-box-text' style="padding: 10px;">The Element you clicked was not a input-box would you like to add this as an element to click before the searchbar?</h1>
             
-            <div class="white_box_two_buttons" style="height: 50%">
-                    <button class='dual_buttons_input'  onclick="clickbeforesearch()">Yes</button>
-                    <button class='dual_buttons_input' onclick="reclicksearch()">No</button>
+            <div class="white-box-two-buttons" style="height: 50%">
+                    <button class='dual-buttons-input'  onclick="clickBeforeSearch()">Yes</button>
+                    <button class='dual-buttons-input' onclick="reClickSearch()">No</button>
             </div>
         </div>
 
@@ -34,48 +34,36 @@
             const { ipcRenderer, webFrame, webContents, contextBridge } = require('electron')
             const webview = document.querySelector('webview')
 
-            
-            var search_temporary = 'placeholder'
-
-            function showalert() {
+            function showAlert() {
                 document.getElementById('search_check').style.display = 'inline';
                 document.getElementById('white_content_box').style.display = 'none';
             }
             
-            function hidealert() {
+            function hideAlert() {
                 document.getElementById('search_check').style.display = 'none';
                 document.getElementById('white_content_box').style.display = 'flex';
             }
 
-            ipcRenderer.on('load-url', (event, arg) => {
+            ipcRenderer.on('loadTextUrl', (event, arg) => {
                 webview.setAttribute('src', arg);
 
                 console.log(arg);
 
             })
             
-            function clickbeforesearch() {
-                hidealert();
-                ipcRenderer.send('search-test', search_temporary)
+            function clickBeforeSearch() {
+                hideAlert();
+                ipcRenderer.send('search-test')
             }
             
-            function reclicksearch() {
-                hidealert();
+            function reClickSearch() {
+                hideAlert();
             }
-            
             
             ipcRenderer.on('wrong-search', (event, arg) =>{
-                showalert();
+                showAlert();
                 search_temporary = arg
             })
-            
-            // const webview = document.querySelector('webview')
-
-            // webview.addEventListener("did-stop-loading", event => {
-            //     ipcRenderer.send('webview-load');
-            //     console.log('loaded');
-            //     window.myAPI.doAThing()
-            // })
         </script>
     </body>
 </html>

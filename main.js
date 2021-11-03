@@ -1,14 +1,6 @@
-// ------------------------------------------------------------------------------
-// Twitter : @JeffProd
-// Web     : https://jeffprod.com
-// ------------------------------------------------------------------------------
-
 const url = require('url')
 const path = require('path')
 const { app, BrowserWindow, ipcMain, ipcRenderer } = require('electron')
-const { argv0 } = require('process')
-const { ECANCELED } = require('constants')
-const { testElement } = require('domutils')
 let mainWindow = null
 let childWindow = null
 
@@ -19,7 +11,6 @@ const mainUrl = url.format({
   slashes: true,
   pathname: path.join(__dirname, 'app/index.html')
 })
-
 
 app.on('ready', function () {
   // var x = 2
@@ -69,9 +60,6 @@ app.on('ready', function () {
 
   childWindow.webContents.openDevTools()
   childWindow.webContents.on('did-finish-load', function () {
-    console.log('childWindow DOM-READY => send back html')
-    childWindow.send('sendbackhtml');
-
     // childWindow.show()
   })  
 
@@ -86,67 +74,51 @@ app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') { app.exit() }
 })
 
-// Load new project window
-ipcMain.on('new_project', (event) =>{
-    mainWindow.loadFile('app/new_project/html/new_project.html')
+ipcMain.on('childWindowClose', (event, arg) => {
+  childWindow.close()
 })
 
-// Load site preview
-// ipcMain.on('site_preview', (event, arg) =>{
-//   mainWindow.loadFile('app/new_project/html/site_preview.html')
-//   mainWindow.maximize()
-//   event.sender.send('site_url', arg)
-// })
-
-// Load select data page
-ipcMain.on('main-page', (event) => {
-  mainWindow.loadFile('app/index.html')
-})
-
-
-
-// ipcMain.on('load-url', (event, arg) => {
-//   mainWindow.loadFile('app/new_project/html/select_data.html')
-//   console.log(arg)
-//   console.log('test')
-//   event.sender.send('pass-through-url', arg)
-// })
-
-ipcMain.on('scrapeurl', (event, arg) => {
+ipcMain.on('loadSearchPreview', (event, arg) => {
   childWindow.loadFile('app/new_project/html/select_search.html')
-  childWindow.send('load_searchbar', arg)
 
   childWindow.webContents.on('dom-ready', function () {
     console.log('childWindow DOM-READY => send back html')
-    childWindow.send('load_searchbar', arg)
+    childWindow.send('loadSearchUrl', arg)
     console.log(arg)
     childWindow.show()
-    mainWindow.send('load-webview')
+    mainWindow.send('loadWebview')
   })  
 })
 
-ipcMain.on('hereishtml', (event, html) => {load
-  mainWindow.send('extracthtml', html)
+// Load select data page
+ipcMain.on('mainPage', (event) => {
+  mainWindow.loadFile('app/index.html')
 })
 
-// Event handler for asynchronous incoming messages
-ipcMain.on('asynchronous-message', (event, arg) => {
-  console.log(arg)
+ipcMain.on('newImgElement', (event, arg) => {
+  childWindow.loadFile('app/new_project/html/select_img.html')
 
-  // Event emitter for sending asynchronous messages
-  event.sender.send('asynchronous-reply', arg)
+  childWindow.webContents.on('dom-ready', function () {
+    console.log('childWindow DOM-READY => send back html')
+    childWindow.send('loadImgUrl', arg)
+    console.log(arg)
+    childWindow.show()
+  }) 
+})
+// Load new project window
+ipcMain.on('newProject', (event) =>{
+    mainWindow.loadFile('app/new_project/html/new_project.html')
 })
 
-// Event handler for synchronous incoming messages
-ipcMain.on('synchronous-message', (event, arg) => {
-  console.log(arg) 
+ipcMain.on('newTextElement', (event, arg) => {
+  childWindow.loadFile('app/new_project/html/select_text.html')
 
-  // Synchronous event emmision
-  event.returnValue = 'sync pong'
-})
-
-ipcMain.on('childWindow-close', (event, arg) => {
-  childWindow.close()
+  childWindow.webContents.on('dom-ready', function () {
+    console.log('childWindow DOM-READY => send back html')
+    childWindow.send('loadTextUrl', arg)
+    console.log(arg)
+    childWindow.show()
+  }) 
 })
 
 // Displays Searchbar select error
@@ -154,47 +126,21 @@ ipcMain.on('no-searchclick', (event, arg) => {
   childWindow.webContents.send('wrong-search', arg);
 })
 
+ipcMain.on('imgXpathMain', (event, arg) => {
+  mainWindow.send('imgXpathRenderer', arg)
+  console.log(arg)
+})
+
 ipcMain.on('search-test', (event, arg) => {
-  mainWindow.webContents.send('print-search', arg)
+  mainWindow.webContents.send('printSearchXpath', arg)
 })
 
-ipcMain.on('new_text_element', (event, arg) => {
-  childWindow.loadFile('app/new_project/html/select_text.html')
-
-  childWindow.webContents.on('dom-ready', function () {
-    console.log('childWindow DOM-READY => send back html')
-    childWindow.send('load-url', arg)
-    console.log(arg)
-    childWindow.show()
-  }) 
-})
-
-ipcMain.on('new_img_element', (event, arg) => {
-  childWindow.loadFile('app/new_project/html/select_img.html')
-
-  childWindow.webContents.on('dom-ready', function () {
-    console.log('childWindow DOM-READY => send back html')
-    childWindow.send('load-url', arg)
-    console.log(arg)
-    childWindow.show()
-  }) 
-})
-
-ipcMain.on('product_link', (event, arg) => {
-  childWindow.send('product_link', arg)
-})
-
-ipcMain.on('img_xpath', (event, arg) => {
-  mainWindow.send('img_xpath', arg)
-  console.log(arg)
-})
-
-ipcMain.on('text_xpath', (event, arg) => {
-  mainWindow.send('text_xpath', arg)
-  console.log(arg)
-})
-
-ipcMain.on('search_xpath', (event, arg) => {
+ipcMain.on('searchXpath', (event, arg) => {
   console.log(arg)
   mainWindow.send("searchXPath", arg)
+})
+
+ipcMain.on('textXpathMain', (event, arg) => {
+  mainWindow.send('textXpathRenderermmmmm', arg)
+  console.log(arg)
 })

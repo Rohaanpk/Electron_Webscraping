@@ -31,8 +31,8 @@ document.addEventListener("click", event => {
     if (event.target.tagName === "INPUT") {
         console.log('test');
         var XPath = createXPathFromElement(event.target);
-        ipcRenderer.send('search_xpath', XPath);
-        ipcRenderer.send('childWindow-close', XPath);
+        ipcRenderer.send('searchXpath', XPath);
+        ipcRenderer.send('childWindowClose', XPath);
     }
     else {
         var XPath = createXPathFromElement(event.target);
