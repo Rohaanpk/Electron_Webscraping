@@ -35,7 +35,6 @@ app.on('ready', function () {
     console.log('user-agent:', mainWindow.webContents.getUserAgent());
     mainWindow.webContents.openDevTools()
     mainWindow.setResizable(true);
-    mainWindow.maximize()
     mainWindow.show()
   })
 
@@ -50,6 +49,7 @@ app.on('ready', function () {
       center: true,
       show: false,
       resizable: false,
+      movable: false,
       webPreferences: {
         nodeIntegration: true
       }
@@ -141,6 +141,6 @@ ipcMain.on('searchXpath', (event, arg) => {
 })
 
 ipcMain.on('textXpathMain', (event, arg) => {
-  mainWindow.send('textXpathRenderermmmmm', arg)
+  mainWindow.send('textXpathRenderer', arg)
   console.log(arg)
 })
