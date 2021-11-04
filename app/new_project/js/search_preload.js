@@ -1,8 +1,10 @@
 const { val } = require('cheerio/lib/api/attributes');
 const { ipcRenderer, webFrame, webviewTag, contextBridge } = require('electron') 
 
+// Load preload.js
 require('./preload.js');  
 
+// Reads the xpath of an element (when function is called with the argument of the element)
 function createXPathFromElement(elm) { 
     var allNodes = document.getElementsByTagName('*'); 
     for (var segs = []; elm && elm.nodeType == 1; elm = elm.parentNode) 
@@ -29,12 +31,13 @@ function createXPathFromElement(elm) {
 
 document.addEventListener("click", event => {
     if (event.target.tagName === "INPUT") {
-        console.log('test');
+        // Read Xpath and close fullscreen window if the element is an <input> (possible searchbox)
         var XPath = createXPathFromElement(event.target);
         ipcRenderer.send('searchXpath', XPath);
         ipcRenderer.send('childWindowClose', XPath);
     }
     else {
+        // Show error box if element clicked is not <input>
         var XPath = createXPathFromElement(event.target);
         ipcRenderer.send('wrongSearchClick', XPath);
         

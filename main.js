@@ -4,18 +4,15 @@ const { app, BrowserWindow, ipcMain, ipcRenderer } = require('electron')
 let mainWindow = null
 let childWindow = null
 
-// Index.html file
-
+// Set initial filepath for the Main Window
 const mainUrl = url.format({
   protocol: 'file',
   slashes: true,
   pathname: path.join(__dirname, 'app/index.html')
 })
 
+// Set default window parameters when app starts
 app.on('ready', function () {
-  // var x = 2
-  // var modified_string = ["/html/body/div[",x,"]/a"].join("")
-  // console.log(modified_string)
   mainWindow = new BrowserWindow({
     center: true,
     minWidth: 1280,
@@ -70,10 +67,12 @@ app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') { app.exit() }
 })
 
+// Close childWindow (site overlay) when recieves the event 'childWindowClose')
 ipcMain.on('childWindowClose', (event, arg) => {
   childWindow.close()
 })
 
+// Loads select search page
 ipcMain.on('loadSearchPreview', (event, arg) => {
   childWindow.loadFile('app/new_project/html/select_search.html')
 
@@ -87,11 +86,12 @@ ipcMain.on('loadSearchPreview', (event, arg) => {
   })  
 })
 
-// Load select data page
+// Navigates back to main page
 ipcMain.on('mainPage', (event) => {
   mainWindow.loadFile('app/index.html')
 })
 
+// Loads select image Page
 ipcMain.on('newImgElement', (event, arg) => {
   childWindow.loadFile('app/new_project/html/select_img.html')
 
@@ -103,11 +103,13 @@ ipcMain.on('newImgElement', (event, arg) => {
     childWindow.show()
   }) 
 })
+
 // Load new project window
 ipcMain.on('newProject', (event) =>{
     mainWindow.loadFile('app/new_project/html/new_project.html')
 })
 
+// Loads select text page
 ipcMain.on('newTextElement', (event, arg) => {
 
   childWindow.loadFile('app/new_project/html/select_text.html')
@@ -126,20 +128,24 @@ ipcMain.on('wrongSearchClick', (event, arg) => {
   childWindow.webContents.send('wrong-search', arg);
 })
 
+// Logs the Xpath of a selected image to console (when recieved)
 ipcMain.on('imgXpathMain', (event, arg) => {
   mainWindow.send('imgXpathRenderer', arg)
   console.log(arg)
 })
 
+// Logs a testing xpath in the main window
 ipcMain.on('beforeSearch', (event, arg) => {
   mainWindow.webContents.send('printSearchXpath', arg)
 })
 
+// Sends searchbar Xpath to Mainwindow to be stored as a var
 ipcMain.on('searchXpath', (event, arg) => {
   console.log(arg)
   mainWindow.send("searchXPath", arg)
 })
 
+// Logs the Xpath of a selected text element to console (when recieved)
 ipcMain.on('textXpathMain', (event, arg) => {
   mainWindow.send('textXpathRenderer', arg)
   console.log(arg)
