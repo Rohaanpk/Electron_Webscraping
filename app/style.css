@@ -24,6 +24,16 @@ webview {
     margin: 10px;
 }
 
+.center-left {
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 100vh;
+    width: 50vw;
+}
+
 .buttons {
     margin: 0px 2vw;
     position: absolute;

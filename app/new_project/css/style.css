@@ -111,6 +111,10 @@ input {
     background-color: red;
 }
 
+.select-sheet {
+    flex-direction: column;
+}
+
 .skinnier-buttons {
     display: inline-flex;
     align-items: center; 

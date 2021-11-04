@@ -36,7 +36,7 @@ document.addEventListener("click", event => {
     }
     else {
         var XPath = createXPathFromElement(event.target);
-        ipcRenderer.send('no-searchclick', XPath);
+        ipcRenderer.send('wrongSearchClick', XPath);
         
     }
 }); // Read Xpath on click

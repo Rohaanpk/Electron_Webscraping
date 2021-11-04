@@ -5,10 +5,9 @@ const { ipcRenderer, webFrame, webContents, ipcMain } = require('electron')
 const fs = require("fs");
 const { parse } = require('path');
 const XLSX = require("xlsx")
-const text_array = []
-const img_array = []
-const search_array = []
-const webpreview = document.getElementById("web_preview");
+const textArray = []
+const imgArray = []
+const webPreview = document.getElementById("web_preview");
 const wbInput = document.getElementById('file_input');
 const wbChange = document.getElementById('file_change');
 
@@ -37,31 +36,25 @@ async function actOnXLSX (file) {
         if(z.toString()[0] === 'A'){
             var x = parseInt(z.replace(/A/, ""))
             cellInt = x + 1
-            if (intChecker == cellInt - 1){
-                columnA.push(worksheet[z].v);
-                console.log(x, worksheet[z].v)
-            }
-            else {
-                columnA.push("")
-                console.log(x - 1, "")
+            while(true) {
+                if (intChecker == cellInt - 1){
+                    columnA.push(worksheet[z].v);
+                    console.log(x, worksheet[z].v)
+                    break
+                }
+                else{
+                    columnA.push("")
+                    console.log(intChecker, "")
+                    intChecker ++
+                }
             }
             intChecker = cellInt
         }
     }
-      
-    console.log(columnA);
-
-    // for (i  = 1; i < columnA.length; i++) {
-    //     const searchBar = getElementByXpath(searchbar_xpath)
-    //     console.log(columnA[i])
-    // }
-    
-    // do stuff with workbook
 }
 
 function changeSheet() {
-    wbChange.click()
-
+    wbChange.click();
 }
 
 function checkUrl(str) {
@@ -94,24 +87,19 @@ function mainPage() {
 }
 
 function newImg() {
-    var url = webpreview.getURL()
+    var url = webPreview.getURL()
     ipcRenderer.send('newImgElement', url);
 }
 
 function newText() {
-    var url = webpreview.getURL()
+    var url = webPreview.getURL()
     ipcRenderer.send('newTextElement', url);
 }
 
 function previewSite() {
     var url = document.getElementById("input_url").value;
-    console.log(checkUrl(url))
     if (checkUrl(url) === true){
-        // ipcRenderer.send('site_preview')
-        var webPreview = document.getElementById("webpage_preview");
         document.getElementById("preview").setAttribute("src", url);
-        // webContent.display = "inline";
-        // document.getElementById("preview").display = "inline";
         document.getElementById("url_heading").innerHTML = url;
         document.getElementById("new_project").style.display =  "none";
         document.getElementById("site_preview").style.display = "inline";
@@ -133,12 +121,12 @@ function selectSheet() {
 
 function selectSheetPage() {
     document.getElementById("site_preview").style.display = "none";
-    document.getElementById("select_sheet").style.display = "block";
+    document.getElementById("select_sheet").style.display = "flex";
 }
 
 ipcRenderer.on('imgXpathRenderer', (event, arg) => {
-    img_array.push(arg);
-    console.log(text_array);
+    imgArray.push(arg);
+    console.log(imgArray);
     const newDiv = document.createElement("p")
     const newContent = document.createTextNode(arg)
     newDiv.appendChild(newContent);
@@ -161,8 +149,8 @@ ipcRenderer.on('searchXPath', (event, arg) => {
 })
 
 ipcRenderer.on('textXpathRenderer', (event, arg) => {
-    text_array.push(arg);
-    console.log(text_array);
+    textArray.push(arg);
+    console.log(textArray);
     const newDiv = document.createElement("p")
     const newContent = document.createTextNode(arg)
     newDiv.appendChild(newContent);
@@ -173,15 +161,17 @@ ipcRenderer.on('textXpathRenderer', (event, arg) => {
 })
 
 wbChange.addEventListener("change", (evt) => {
-    if (wbInput.files.length === 0)
+    wbInput.files.length = 0
+    if (wbChange.files.length === 0)
       return;
   
     actOnXLSX(wbChange.files[0]);
 }, false);
 
 wbInput.addEventListener("change", (evt) => {
+    wbInput.files.length = 0
     if (wbInput.files.length === 0)
-      return;
+    return;
   
     actOnXLSX(wbInput.files[0]);
     loadScrapeSelectPage()

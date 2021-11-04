@@ -36,7 +36,7 @@ function createXPathFromElement(elm) {
 document.addEventListener("click", event => {
     if (event.target.innerHTML === "") {
         var tagname = event.target.tagname
-        ipcRenderer.send('no-searchclick', tagname);
+        ipcRenderer.send('wrongSearchClick', tagname);
     }
     else {
     var XPath = createXPathFromElement(event.target);

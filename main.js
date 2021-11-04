@@ -49,18 +49,14 @@ app.on('ready', function () {
       parent: mainWindow,
       center: true,
       show: false,
-      fullscreen: true,
+      resizable: false,
       webPreferences: {
-        // nodeIntegration: true,
-        // preload: path.join(__dirname, 'app/new_project/js/data_select.js')
-        nodeIntegration: true,
-        preload: path.join(__dirname, 'app/new_project/js/data_select.js')
+        nodeIntegration: true
       }
   })
 
   childWindow.webContents.openDevTools()
   childWindow.webContents.on('did-finish-load', function () {
-    // childWindow.show()
   })  
 
   childWindow.on('close', event => {
@@ -85,6 +81,7 @@ ipcMain.on('loadSearchPreview', (event, arg) => {
     console.log('childWindow DOM-READY => send back html')
     childWindow.send('loadSearchUrl', arg)
     console.log(arg)
+    childWindow.setBounds(mainWindow.getBounds())
     childWindow.show()
     mainWindow.send('loadWebview')
   })  
@@ -102,6 +99,7 @@ ipcMain.on('newImgElement', (event, arg) => {
     console.log('childWindow DOM-READY => send back html')
     childWindow.send('loadImgUrl', arg)
     console.log(arg)
+
     childWindow.show()
   }) 
 })
@@ -111,18 +109,20 @@ ipcMain.on('newProject', (event) =>{
 })
 
 ipcMain.on('newTextElement', (event, arg) => {
+
   childWindow.loadFile('app/new_project/html/select_text.html')
 
   childWindow.webContents.on('dom-ready', function () {
     console.log('childWindow DOM-READY => send back html')
     childWindow.send('loadTextUrl', arg)
     console.log(arg)
+
     childWindow.show()
   }) 
 })
 
 // Displays Searchbar select error
-ipcMain.on('no-searchclick', (event, arg) => {
+ipcMain.on('wrongSearchClick', (event, arg) => {
   childWindow.webContents.send('wrong-search', arg);
 })
 
@@ -131,7 +131,7 @@ ipcMain.on('imgXpathMain', (event, arg) => {
   console.log(arg)
 })
 
-ipcMain.on('search-test', (event, arg) => {
+ipcMain.on('beforeSearch', (event, arg) => {
   mainWindow.webContents.send('printSearchXpath', arg)
 })
 
