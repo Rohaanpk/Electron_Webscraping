@@ -22,6 +22,7 @@ app.on('ready', function () {
             nodeIntegration: true,
             contextIsolation: false,
             webviewTag: true,
+            sandbox: false,
         }
     })
 
@@ -53,6 +54,7 @@ app.on('ready', function () {
             nodeIntegration: true,
             contextIsolation: false,
             webviewTag: true,
+            sandbox: false,
         }
     })
 
