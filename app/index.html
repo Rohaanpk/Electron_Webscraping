@@ -25,6 +25,7 @@
             const { ipcRenderer, webFrame } = require('electron')
             function loadNewProject(){
                 ipcRenderer.send('newProject');
+                console.log("test");
             }
         </script>
     </body>

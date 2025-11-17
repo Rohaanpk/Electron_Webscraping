@@ -1,9 +1,9 @@
-const { val } = require('cheerio/lib/api/attributes');
-const { text } = require('cheerio/lib/api/manipulation');
-const { get } = require('cheerio/lib/api/traversing');
+// const { val } = require('cheerio/lib/api/attributes');
+// const { text } = require('cheerio/lib/api/manipulation');
+// const { get } = require('cheerio/lib/api/traversing');
 const { ipcRenderer, webFrame, webContents, ipcMain } = require('electron')
-const fs = require("fs");
-const { parse } = require('path');
+// const fs = require("fs");
+// const { parse } = require('path');
 const XLSX = require("xlsx")
 // Set array var's
 var textArray = []
@@ -113,7 +113,7 @@ function previewSite() {
         document.getElementById("preview").setAttribute("src", url);
         document.getElementById("url_heading").innerHTML = url;
         document.getElementById("new_project").style.display =  "none";
-        document.getElementById("site_preview").style.display = "inline";
+        document.getElementById("site_preview").style.display = "flex";
     }
     else {
         alert("Please enter a valid URL")
@@ -196,3 +196,5 @@ wbInput.addEventListener("change", (evt) => {
     actOnXLSX(wbInput.files[0]);
     loadScrapeSelectPage()
 }, false);
+
+// console.log("NEW PROJECT");

@@ -1,6 +1,6 @@
-const { val } = require('cheerio/lib/api/attributes');
+// const { val } = require('cheerio/lib/api/attributes');
 const { ipcRenderer, webFrame, webviewTag, contextBridge } = require('electron')
-const xPathToCss = require('xpath-to-css')
+// const xPathToCss = require('xpath-to-css')
 
  // Inject Jquery into site overlay
 window.onload = function() {
@@ -46,3 +46,6 @@ function updateMask(target) {
     hObj.style.width = rect.width + "px";
     hObj.style.height = rect.height + "px";
 };
+
+
+// console.log("PRELOAD");

@@ -2,7 +2,7 @@ const { val } = require('cheerio/lib/api/attributes');
 const { ipcRenderer, webFrame, webviewTag, contextBridge } = require('electron')
 
 // Load preload.js
-require('./preload.js');  
+require('preload.js');  
 
 // Reads the xpath of an element (when function is called with the argument of the element)
 function createXPathFromElement(elm) { 
@@ -32,7 +32,7 @@ function createXPathFromElement(elm) {
 // Waits for user to click on page element
 document.addEventListener("click", event => {
     if (event.target.innerHTML === "") {
-        // Show alert element ig element clicked has no innertext
+        // Show alert element if element clicked has no innertext
         var tagname = event.target.tagname
         ipcRenderer.send('wrongSearchClick', tagname);
     }
@@ -43,3 +43,5 @@ document.addEventListener("click", event => {
     ipcRenderer.send('childWindowClose', XPath);
     }
 });
+
+// console.log("TEXT PRELOAD");

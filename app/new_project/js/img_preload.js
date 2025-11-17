@@ -2,7 +2,7 @@ const { val } = require('cheerio/lib/api/attributes');
 const { ipcRenderer, webFrame, webviewTag, contextBridge } = require('electron')
 
 // Load preload.js
-require('./preload.js');  
+require('preload.js');  
 
 // Reads the xpath of an element (when function is called with the argument of the element)
 function createXPathFromElement(elm) { 
@@ -49,3 +49,5 @@ document.addEventListener("click", event => {
         ipcRenderer.send('wrongSearchClick', XPath);
     }
 });
+
+// console.log("IMG PRELOAD");
