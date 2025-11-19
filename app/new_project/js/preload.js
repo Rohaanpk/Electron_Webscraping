@@ -2,8 +2,8 @@
 const { ipcRenderer, webFrame, webviewTag, contextBridge } = require('electron')
 // const xPathToCss = require('xpath-to-css')
 
- // Inject Jquery into site overlay
-window.onload = function() {
+// Inject Jquery into site overlay
+window.onload = function () {
     webFrame.setZoomFactor(1);
     console.log('preload.js loaded');
     var scriptElt = document.createElement('script');
@@ -12,14 +12,14 @@ window.onload = function() {
     document.getElementsByTagName('head')[0].appendChild(scriptElt);
 
     // Disable Links
-    $("*").on("click", function(event){
+    $("*").on("click", function (event) {
         if ($(this).is("[disabled]")) {
             event.preventDefault();
         }
-    });    
+    });
 };
 
- // Apply mask to hovered element
+// Apply mask to hovered element
 document.addEventListener('mouseover', function (e) {
     updateMask(e.target);
 });

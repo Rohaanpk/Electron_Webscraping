@@ -14,10 +14,10 @@ const wbInput = document.getElementById('file_input');
 const wbChange = document.getElementById('file_change');
 
 // Parses selected excel file
-async function actOnXLSX (file) {
+async function actOnXLSX(file) {
     // Reads file
     const fileReader = new FileReader();
-  
+
     const data = await new Promise((resolve, reject) => {
         fileReader.onload = () => {
             resolve(fileReader.result);
@@ -25,33 +25,33 @@ async function actOnXLSX (file) {
         fileReader.onerror = reject;
         // Converts file to array buffer
         fileReader.readAsArrayBuffer(file);
-        })
-    .finally(() => {
-        fileReader.onerror = fileReader.onload = null;
-      });
+    })
+        .finally(() => {
+            fileReader.onerror = fileReader.onload = null;
+        });
     console.log(data)
     // Reads array buffer as data
     const workbook = XLSX.read(data);
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    
-    
+
+
     var columnA = []
     var intChecker = 1
     // iterate through the data and get the content within the first column and store it to an array
     for (let z in worksheet) {
-        if(z.toString()[0] === 'A'){
+        if (z.toString()[0] === 'A') {
             var x = parseInt(z.replace(/A/, ""))
             cellInt = x + 1
-            while(true) {
-                if (intChecker == cellInt - 1){
+            while (true) {
+                if (intChecker == cellInt - 1) {
                     columnA.push(worksheet[z].v);
                     console.log(x, worksheet[z].v)
                     break
                 }
-                else{
+                else {
                     columnA.push("")
                     console.log(intChecker, "")
-                    intChecker ++
+                    intChecker++
                 }
             }
             intChecker = cellInt
@@ -103,16 +103,17 @@ function newImg() {
 // Open fullscreen preview window to select text element
 function newText() {
     var url = webPreview.getURL()
+    console.log(url);
     ipcRenderer.send('newTextElement', url);
 }
 
 // Open site preview page
 function previewSite() {
     var url = document.getElementById("input_url").value;
-    if (checkUrl(url) === true){
+    if (checkUrl(url) === true) {
         document.getElementById("preview").setAttribute("src", url);
         document.getElementById("url_heading").innerHTML = url;
-        document.getElementById("new_project").style.display =  "none";
+        document.getElementById("new_project").style.display = "none";
         document.getElementById("site_preview").style.display = "flex";
     }
     else {
@@ -129,7 +130,7 @@ function scrapingPreview() {
 
 // Click on (invisible) file input to select spreadsheet
 function selectSheet() {
-    wbInput.click();  
+    wbInput.click();
 }
 
 // Load select sheet page 
@@ -183,16 +184,16 @@ ipcRenderer.on('textXpathRenderer', (event, arg) => {
 wbChange.addEventListener("change", (evt) => {
     wbInput.files.length = 0
     if (wbChange.files.length === 0)
-      return;
-  
+        return;
+
     actOnXLSX(wbChange.files[0]);
 }, false);
 
 wbInput.addEventListener("change", (evt) => {
     wbInput.files.length = 0
     if (wbInput.files.length === 0)
-    return;
-  
+        return;
+
     actOnXLSX(wbInput.files[0]);
     loadScrapeSelectPage()
 }, false);

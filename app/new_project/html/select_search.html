@@ -1,71 +1,76 @@
 <!DOCTYPE html>
 <html>
-    <head>
+
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <title>Scraping with Electron</title>
     <link href='https://fonts.googleapis.com/css?family=Overpass' rel='stylesheet'>
     <link rel="stylesheet" href="../css/style.css">
-    </head>
-    <style>
-        
+</head>
+<style>
 
-    </style>
-    <body>
-        <div id="searchbar_div">
-            <webview id='webview_search' style="height: 100vh; opacity: 0.5;" nodeintegration nodeintegrationinsubframes preload="../js/search_preload.js"></webview>
-            
-            <div id='white_content_box' class="white-box" style="top: 50%; opacity: 1; height:30vh;">
-                <div class="white-box-text">
-                    <h1>Please click on the Searchbar of the site</h1>
-                </div>
-            </div>
-            
-            <div id='search_check' class="white-box-centered" style="display: none; z-index: 4;">
-                <h1 class='white-box-text' style="padding: 10px;">The Element you clicked was not a input-box would you like to add this as an element to click before the searchbar?</h1>
-                
-                <div class="white-box-two-buttons" style="height: 50%">
-                        <button class='dual-buttons-input'  onclick="clickBeforeSearch()">Yes</button>
-                        <button class='dual-buttons-input' onclick="reClickSearch()">No</button>
-                </div>
+
+</style>
+
+<body>
+    <div id="searchbar_div">
+        <webview id='webview_search' style="height: 100vh; opacity: 0.5;" nodeintegration nodeintegrationinsubframes
+            preload="../js/search_preload.js"></webview>
+
+        <div id='white_content_box' class="white-box" style="top: 50%; opacity: 1; height:30vh;">
+            <div class="white-box-text">
+                <h1>Please click on the Searchbar of the site</h1>
             </div>
         </div>
 
-        <script>
-            const { ipcRenderer, webFrame, webContents, contextBridge } = require('electron');
-            const webview = document.querySelector("webview")
-            
+        <div id='search_check' class="white-box-centered" style="display: none; z-index: 4;">
+            <h1 class='white-box-text' style="padding: 10px;">The Element you clicked was not a input-box would you like
+                to add this as an element to click before the searchbar?</h1>
 
-            function showAlert() {
-                document.getElementById('search_check').style.display = 'inline';
-                document.getElementById('white_content_box').style.display = 'none';
-            }
-            
-            function hideAlert() {
-                document.getElementById('search_check').style.display = 'none';
-                document.getElementById('white_content_box').style.display = 'flex';
-            }
+            <div class="white-box-two-buttons" style="height: 50%">
+                <button class='dual-buttons-input' onclick="clickBeforeSearch()">Yes</button>
+                <button class='dual-buttons-input' onclick="reClickSearch()">No</button>
+            </div>
+        </div>
+    </div>
 
-            ipcRenderer.on('loadSearchUrl', (event, arg) => {
-                webview_search.setAttribute('src', arg);
-                document.getElementById('searchbar_div').style.display = "inline" 
-                console.log(arg);
-            })
-            
-            function clickBeforeSearch() {
-                hideAlert();
-                ipcRenderer.send('beforeSearch')
-            }
-            
-            function reClickSearch() {
-                hideAlert();
-            }
-            
-            
-            ipcRenderer.on('wrong-search', (event, arg) =>{
-                showAlert();
-                search_temporary = arg
-            })
-        </script>
-    </body>
+    <script>
+        const { ipcRenderer, webFrame, webContents, contextBridge } = require('electron');
+        const webview = document.querySelector("webview")
+
+
+        function showAlert() {
+            document.getElementById('search_check').style.display = 'inline';
+            document.getElementById('white_content_box').style.display = 'none';
+        }
+
+        function hideAlert() {
+            document.getElementById('search_check').style.display = 'none';
+            document.getElementById('white_content_box').style.display = 'flex';
+        }
+
+        ipcRenderer.on('loadSearchUrl', (event, arg) => {
+            webview_search.setAttribute('src', arg);
+            document.getElementById('searchbar_div').style.display = "inline"
+            console.log(arg);
+        })
+
+        function clickBeforeSearch() {
+            hideAlert();
+            ipcRenderer.send('beforeSearch')
+        }
+
+        function reClickSearch() {
+            hideAlert();
+        }
+
+
+        ipcRenderer.on('wrong-search', (event, arg) => {
+            showAlert();
+            search_temporary = arg
+        })
+    </script>
+</body>
+
 </html>

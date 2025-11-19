@@ -1,32 +1,34 @@
 <!DOCTYPE html>
 <html>
-    <head>
+
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <title>Scraping with Electron</title>
     <link href='https://fonts.googleapis.com/css?family=Overpass' rel='stylesheet'>
     <link rel="stylesheet" href="style.css">
-    </head>
+</head>
 
-    <body>
-        <div class="center-left">
-            <img style="width: 40vw;" src="images/logo.png"/>
-            <h1 class='index-heading'>Smartfox Webscraper</h1>
-        </div>
+<body>
+    <div class="center-left">
+        <img style="width: 40vw;" src="images/logo.png" />
+        <h1 class='index-heading'>Smartfox Webscraper</h1>
+    </div>
 
-        <div class="buttons">
-            <button onclick="loadNewProject()">Load New Project</button>
-            <button onclick="PrintText()">View Usage Instructions</button>
-            <button onclick="PrintLink()">Open Output File Folder</button>
-        </div>
-        <!-- <script src="js/index.js"></script> -->
-        <!-- <script src="js/preload.js"></script> -->
-        <script>
-            const { ipcRenderer, webFrame } = require('electron')
-            function loadNewProject(){
-                ipcRenderer.send('newProject');
-                console.log("test");
-            }
-        </script>
-    </body>
+    <div class="buttons">
+        <button onclick="loadNewProject()">Load New Project</button>
+        <button onclick="PrintText()">View Usage Instructions</button>
+        <button onclick="PrintLink()">Open Output File Folder</button>
+    </div>
+    <!-- <script src="js/index.js"></script> -->
+    <!-- <script src="js/preload.js"></script> -->
+    <script>
+        const { ipcRenderer, webFrame } = require('electron')
+        function loadNewProject() {
+            ipcRenderer.send('newProject');
+            console.log("test");
+        }
+    </script>
+</body>
+
 </html>

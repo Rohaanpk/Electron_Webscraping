@@ -1,87 +1,89 @@
 <!DOCTYPE html>
 <html>
-    <head>
+
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <title>Scraping with Electron</title>
     <script scr='../../jquery.js'></script>
     <link href='https://fonts.googleapis.com/css?family=Overpass' rel='stylesheet'>
     <link rel="stylesheet" href="../css/style.css">
-    </head>
+</head>
 
-    <body>
-        <div id="new_project" style="height: auto; display: inline;">
-            <div class="centered-text">
-                <h1>Enter the site link in the input box below</h1>
-            </div>
-            
-            <div class='input-url'>
-                <input id="input_url" type="url" placeholder="www.example.com" pattern="https://.*" required>
-            </div>
-            
-            <div class='two-buttons' style="margin: 10vh">
-                <button class='dual-buttons-input' onclick="previewSite()">Create Project with this link</button>
-                <button class='dual-buttons-input' onclick="mainPage()">Go back to the main page</button>
-            </div>
-        </div>
-        
-        <div class="webpage-preview" id="site_preview">
-            <webview class="preview" id="preview"></webview>
-            
-            <div class="white-box" style="top: 50%">
-                <div class="white-box-text">
-                    <h1>IS THIS THE SITE YOU WISH TO SCRAPE FROM?</h1>
-                </div>
-                
-                <div class="white-box-two-buttons">
-                    <button class='dual-buttons-input'  onclick="selectSheetPage()">Use this webpage</button>
-                    <button class='dual-buttons-input' onclick="changeSiteLink()">Use different website Link</button>
-                </div>
-            </div>
-        </div>
-        
-        <div id="select_sheet" class="select-sheet" style="display: none;">
-            <div class="centered-text">
-                <h1>Would you like to prepare a site without an excel file or select the file now?</h1>
-            </div>
-            
-            <div class='two-buttons' style="margin: 15vh auto;">
-                <button class='dual-buttons-input' onclick="loadScrapeSelectPage()">Select Later</button>
-
-                <button class='dual-buttons-input' onclick="selectSheet()">Select Now</button>
-                <input id="file_input" type="file" name="name" style="display: none;" accept=".csv,.xlsx"/>
-            </div>
+<body>
+    <div id="new_project" style="height: auto; display: inline;">
+        <div class="centered-text">
+            <h1>Enter the site link in the input box below</h1>
         </div>
 
-        <div style="display:none;" id="select_data">
-            <div class='white-box-left'>
-                <ul class="scraping-list" id="scraping_list">
-                    <h1 class='url-heading' id="url_heading"></h1>
-                </ul>
-                    <button class="scraping-button" onclick="scrapingPreview()">START SCRAPING</button>
-            </div>
-        
-            <webview id="web_preview" class="data-prep"></webview>
-
-            <div class='quad-buttons'>
-                <button class='skinnier-buttons'>ADD NEW PAGE LINK</button>
-                <button class='skinnier-buttons' onclick="newText()">ADD NEW TEXT ELEMENT</button>
-                <button class='skinnier-buttons' onclick="newImg()">ADD NEW IMAGE ELEMENT</button>
-                <button class='skinnier-buttons' onclick="changeSheet()">CHANGE SPREADSHEET</button>
-                <input id="file_change" type="file" name="name" style="display: none;" accept=".csv,.xlsx"/>
-            </div>
+        <div class='input-url'>
+            <input id="input_url" type="url" placeholder="www.example.com" pattern="https://.*" required>
         </div>
 
-        <div id="scraping_preview" style="display: none;">
-            <div class="white-box-left">
-                <button class="scraping-button">PAUSE SCRAPING</button>
-            </div>
-            
-            <div class="scraping-preview">
-                <iframe class="scraping-site-preview"></iframe>
-            </div>
-            
+        <div class='two-buttons' style="margin: 10vh">
+            <button class='dual-buttons-input' onclick="previewSite()">Create Project with this link</button>
+            <button class='dual-buttons-input' onclick="mainPage()">Go back to the main page</button>
         </div>
-       <script src="../js/new_project.js"></script>
-    </body>
-</html>     
+    </div>
+
+    <div class="webpage-preview" id="site_preview">
+        <webview class="preview" id="preview"></webview>
+
+        <div class="white-box" style="top: 50%">
+            <div class="white-box-text">
+                <h1>IS THIS THE SITE YOU WISH TO SCRAPE FROM?</h1>
+            </div>
+
+            <div class="white-box-two-buttons">
+                <button class='dual-buttons-input' onclick="selectSheetPage()">Use this webpage</button>
+                <button class='dual-buttons-input' onclick="changeSiteLink()">Use different website Link</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="select_sheet" class="select-sheet" style="display: none;">
+        <div class="centered-text">
+            <h1>Would you like to prepare a site without an excel file or select the file now?</h1>
+        </div>
+
+        <div class='two-buttons' style="margin: 15vh auto;">
+            <button class='dual-buttons-input' onclick="loadScrapeSelectPage()">Select Later</button>
+
+            <button class='dual-buttons-input' onclick="selectSheet()">Select Now</button>
+            <input id="file_input" type="file" name="name" style="display: none;" accept=".csv,.xlsx" />
+        </div>
+    </div>
+
+    <div style="display:none;" id="select_data">
+        <div class='white-box-left'>
+            <ul class="scraping-list" id="scraping_list">
+                <h1 class='url-heading' id="url_heading"></h1>
+            </ul>
+            <button class="scraping-button" onclick="scrapingPreview()">START SCRAPING</button>
+        </div>
+
+        <webview id="web_preview" class="data-prep"></webview>
+
+        <div class='quad-buttons'>
+            <button class='skinnier-buttons'>ADD NEW PAGE LINK</button>
+            <button class='skinnier-buttons' onclick="newText()">ADD NEW TEXT ELEMENT</button>
+            <button class='skinnier-buttons' onclick="newImg()">ADD NEW IMAGE ELEMENT</button>
+            <button class='skinnier-buttons' onclick="changeSheet()">CHANGE SPREADSHEET</button>
+            <input id="file_change" type="file" name="name" style="display: none;" accept=".csv,.xlsx" />
+        </div>
+    </div>
+
+    <div id="scraping_preview" style="display: none;">
+        <div class="white-box-left">
+            <button class="scraping-button">PAUSE SCRAPING</button>
+        </div>
+
+        <div class="scraping-preview">
+            <iframe class="scraping-site-preview"></iframe>
+        </div>
+
+    </div>
+    <script src="../js/new_project.js"></script>
+</body>
+
+</html>
