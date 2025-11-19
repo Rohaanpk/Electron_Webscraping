@@ -5,13 +5,19 @@ const { ipcRenderer, webFrame, webContents, ipcMain } = require('electron')
 // const fs = require("fs");
 // const { parse } = require('path');
 const XLSX = require("xlsx")
+const {By, Builder, Browser, Key} = require('selenium-webdriver');
+const assert = require("assert");
+
 // Set array var's
 var textArray = []
 var imgArray = []
-var search_array = []
+var searchbar_id = ""
+var codes = []
+var link = ""
 const webPreview = document.getElementById("web_preview");
 const wbInput = document.getElementById('file_input');
 const wbChange = document.getElementById('file_change');
+
 
 // Parses selected excel file
 async function actOnXLSX(file) {
@@ -29,13 +35,14 @@ async function actOnXLSX(file) {
         .finally(() => {
             fileReader.onerror = fileReader.onload = null;
         });
-    console.log(data)
+    console.log(data);
+
     // Reads array buffer as data
     const workbook = XLSX.read(data);
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    console.log(worksheet);
 
-
-    var columnA = []
+    // var columnA = []
     var intChecker = 1
     // iterate through the data and get the content within the first column and store it to an array
     for (let z in worksheet) {
@@ -44,12 +51,12 @@ async function actOnXLSX(file) {
             cellInt = x + 1
             while (true) {
                 if (intChecker == cellInt - 1) {
-                    columnA.push(worksheet[z].v);
+                    codes.push(worksheet[z].v);
                     console.log(x, worksheet[z].v)
                     break
                 }
                 else {
-                    columnA.push("")
+                    codes.push("")
                     console.log(intChecker, "")
                     intChecker++
                 }
@@ -58,7 +65,7 @@ async function actOnXLSX(file) {
         }
     }
     // log the first column data to console
-    console.log(columnA);
+    console.log(codes);
 }
 
 // Click on (invisible) file input to change spreadsheet
@@ -84,9 +91,9 @@ function changeSiteLink() {
 
 // Load site link confirm page
 function loadScrapeSelectPage() {
-    var url = document.getElementById("input_url").value;
-    document.getElementById("web_preview").setAttribute('src', url)
-    ipcRenderer.send('loadSearchPreview', url);
+    link = document.getElementById("input_url").value;
+    document.getElementById("web_preview").setAttribute('src', link)
+    ipcRenderer.send('loadSearchPreview', link);
 }
 
 // Open (go back to) main page
@@ -126,6 +133,7 @@ function previewSite() {
 function scrapingPreview() {
     document.getElementById("select_data").style.display = 'none';
     document.getElementById("scraping_preview").style.display = 'inline';
+    startScraping(link, searchbar_id, textArray);
 }
 
 // Click on (invisible) file input to select spreadsheet
@@ -164,7 +172,7 @@ ipcRenderer.on('printSearchXpath', (event, arg) => {
 
 // Save passed argument as searchbar Xpath
 ipcRenderer.on('searchXPath', (event, arg) => {
-    var searchbar_xpath = arg
+    searchbar_id = arg
 })
 
 // Prints text xpath in data select page (in white box) and sets element attributes
@@ -198,4 +206,29 @@ wbInput.addEventListener("change", (evt) => {
     loadScrapeSelectPage()
 }, false);
 
-// console.log("NEW PROJECT");
+
+// SCRAPING FUNCTION, WORK IN PROGRESS
+async function startScraping(url, searchbar, textarray) {
+    driver = await new Builder().forBrowser(Browser.CHROME).build();
+    await driver.get(url);
+    var length = codes.length;
+
+    for (let i = 1; i < length; i++) {
+        let search_elem = await driver.findElement(By.xpath(searchbar));
+
+
+        await search_elem.sendKeys(codes[i]);
+        await search_elem.sendKeys(Key.ENTER);
+
+        let prod_link = await driver.findElement(By.xpath(`//h3[text()='${codes[i]}']`))
+        await prod_link.click();
+
+        let text_elem = await driver.findElement(By.xpath(textarray[0]));
+        let value = await text_elem.getText();
+        console.log(value);
+    }
+    await driver.quit();
+} 
+
+
+
