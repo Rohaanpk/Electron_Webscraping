@@ -1,5 +1,5 @@
 // const { val } = require('cheerio/lib/api/attributes');
-const { ipcRenderer, webFrame, webviewTag, contextBridge } = require('electron')
+const { ipcRenderer, webFrame, } = require('electron')
 
 // // Load preload.js
 // require('preload.js');
@@ -20,6 +20,7 @@ function createXPathFromElement(elm) {
             }
         }
         else {
+            var i, sib;
             for (i = 1, sib = elm.previousSibling; sib; sib = sib.previousSibling) {
                 if (sib.localName == elm.localName) i++;
             };
@@ -31,21 +32,22 @@ function createXPathFromElement(elm) {
 
 // Waits for user to click on page element
 document.addEventListener("click", event => {
+    var XPath;
     if (event.target.tagName === "IMG") {
         // Read Xpath and close fullscreen window if the element is an <img> (image)
-        var XPath = createXPathFromElement(event.target);
+        XPath = createXPathFromElement(event.target);
         ipcRenderer.send('imgXpathMain', XPath);
         ipcRenderer.send('childWindowClose');
     }
     else if (event.target.tagName === "A") {
         // Read Xpath and close fullscreen window if the element is an <a> (possible image)
-        var XPath = createXPathFromElement(event.target);
+        XPath = createXPathFromElement(event.target);
         ipcRenderer.send('imgXpathMain', XPath);
         ipcRenderer.send('childWindowClose');
     }
     else {
         // Show error box if an <a> or <img> are not clicked
-        var XPath = createXPathFromElement(event.target);
+        XPath = createXPathFromElement(event.target);
         ipcRenderer.send('wrongSearchClick', XPath);
     }
 });

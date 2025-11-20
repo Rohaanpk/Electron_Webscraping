@@ -1,5 +1,5 @@
 // const { val } = require('cheerio/lib/api/attributes');
-const { ipcRenderer, webFrame, webviewTag, contextBridge } = require('electron')
+const { ipcRenderer, webFrame } = require('electron')
 
 // // Load preload.js
 // require('preload.js');
@@ -20,6 +20,7 @@ function createXPathFromElement(elm) {
             }
         }
         else {
+            var i, sib;
             for (i = 1, sib = elm.previousSibling; sib; sib = sib.previousSibling) {
                 if (sib.localName == elm.localName) i++;
             };

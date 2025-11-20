@@ -1,6 +1,6 @@
 const url = require('url')
 const path = require('path')
-const { app, BrowserWindow, ipcMain, ipcRenderer } = require('electron')
+const { app, BrowserWindow, ipcMain } = require('electron')
 let mainWindow = null
 let childWindow = null
 
@@ -74,7 +74,7 @@ app.on('window-all-closed', function () {
 })
 
 // Close childWindow (site overlay) when recieves the event 'childWindowClose')
-ipcMain.on('childWindowClose', (event, arg) => {
+ipcMain.on('childWindowClose', () => {
     childWindow.close()
 })
 
@@ -93,7 +93,7 @@ ipcMain.on('loadSearchPreview', (event, arg) => {
 })
 
 // Navigates back to main page
-ipcMain.on('mainPage', (event) => {
+ipcMain.on('mainPage', () => {
     mainWindow.loadFile('app/index.html')
 })
 
@@ -111,7 +111,7 @@ ipcMain.on('newImgElement', (event, arg) => {
 })
 
 // Load new project window
-ipcMain.on('newProject', (event) => {
+ipcMain.on('newProject', () => {
     mainWindow.loadFile('app/new_project/html/new_project.html')
 })
 
