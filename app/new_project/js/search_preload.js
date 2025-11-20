@@ -1,5 +1,5 @@
 // const { val } = require('cheerio/lib/api/attributes');
-const { ipcRenderer, webFrame, webviewTag, contextBridge } = require('electron')
+const { ipcRenderer, webFrame} = require('electron')
 
 // // Load preload.js
 // require('preload.js');
@@ -20,6 +20,7 @@ function createXPathFromElement(elm) {
             }
         }
         else {
+            var i, sib;
             for (i = 1, sib = elm.previousSibling; sib; sib = sib.previousSibling) {
                 if (sib.localName == elm.localName) i++;
             };
@@ -30,16 +31,17 @@ function createXPathFromElement(elm) {
 };
 
 document.addEventListener("click", event => {
-    console.log("test");
+    // console.log("test");
+    var XPath;
     if (event.target.tagName === "INPUT") {
         // Read Xpath and close fullscreen window if the element is an <input> (possible searchbox)
-        var XPath = createXPathFromElement(event.target);
+        XPath = createXPathFromElement(event.target);
         ipcRenderer.send('searchXpath', XPath);
         ipcRenderer.send('childWindowClose', XPath);
     }
     else {
         // Show error box if element clicked is not <input>
-        var XPath = createXPathFromElement(event.target);
+        XPath = createXPathFromElement(event.target);
         ipcRenderer.send('wrongSearchClick', XPath);
 
     }
