@@ -97,6 +97,40 @@ ipcMain.on('mainPage', () => {
     mainWindow.loadFile('app/index.html')
 })
 
+// Load new project window
+ipcMain.on('newProject', () => {
+    mainWindow.loadFile('app/new_project/html/new_project.html')
+})
+
+
+// Loads select link page
+ipcMain.on('newLinkElement', (event, arg) => {
+    childWindow.loadFile('app/new_project/html/select_link.html')
+
+    childWindow.webContents.on('dom-ready', function () {
+        console.log('childWindow DOM-READY => send back html')
+        childWindow.send('loadLinkUrl', arg)
+        console.log(arg)
+
+        childWindow.show()
+    })
+})
+
+
+// Loads select text page
+ipcMain.on('newTextElement', (event, arg) => {
+    childWindow.loadFile('app/new_project/html/select_text.html')
+
+    childWindow.webContents.on('dom-ready', function () {
+        console.log('childWindow DOM-READY => send back html')
+        childWindow.send('loadTextUrl', arg)
+        console.log(arg)
+
+        childWindow.show()
+    })
+})
+
+
 // Loads select image Page
 ipcMain.on('newImgElement', (event, arg) => {
     childWindow.loadFile('app/new_project/html/select_img.html')
@@ -110,35 +144,12 @@ ipcMain.on('newImgElement', (event, arg) => {
     })
 })
 
-// Load new project window
-ipcMain.on('newProject', () => {
-    mainWindow.loadFile('app/new_project/html/new_project.html')
-})
-
-// Loads select text page
-ipcMain.on('newTextElement', (event, arg) => {
-
-    childWindow.loadFile('app/new_project/html/select_text.html')
-
-    childWindow.webContents.on('dom-ready', function () {
-        console.log('childWindow DOM-READY => send back html')
-        childWindow.send('loadTextUrl', arg)
-        console.log(arg)
-
-        childWindow.show()
-    })
-})
 
 // Displays Searchbar select error
 ipcMain.on('wrongSearchClick', (event, arg) => {
     childWindow.webContents.send('wrong-search', arg);
 })
 
-// Logs the Xpath of a selected image to console (when recieved)
-ipcMain.on('imgXpathMain', (event, arg) => {
-    mainWindow.send('imgXpathRenderer', arg)
-    console.log(arg)
-})
 
 // Logs a testing xpath in the main window
 ipcMain.on('beforeSearch', (event, arg) => {
@@ -151,9 +162,20 @@ ipcMain.on('searchXpath', (event, arg) => {
     mainWindow.send("searchXPath", arg)
 })
 
+ipcMain.on('linkXpathMain', (event, arg) => {
+    console.log(arg);
+    mainWindow.send('linkXpathRenderer', arg);
+})
+
+
 // Logs the Xpath of a selected text element to console (when recieved)
 ipcMain.on('textXpathMain', (event, arg) => {
     mainWindow.send('textXpathRenderer', arg)
     console.log(arg)
 })
 
+// Logs the Xpath of a selected image to console (when recieved)
+ipcMain.on('imgXpathMain', (event, arg) => {
+    mainWindow.send('imgXpathRenderer', arg)
+    console.log(arg)
+})

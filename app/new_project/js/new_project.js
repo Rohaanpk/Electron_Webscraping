@@ -5,12 +5,13 @@ const { ipcRenderer } = require('electron')
 // const fs = require("fs");
 // const { parse } = require('path');
 const XLSX = require("xlsx")
-const {By, Builder, Browser, Key} = require('selenium-webdriver');
+const { By, Builder, Browser, Key } = require('selenium-webdriver');
 
 // Set array var's
 var textArray = []
 var imgArray = []
 var searchbar_id = ""
+var before_product = []
 var codes = []
 var link = ""
 const webPreview = document.getElementById("web_preview");
@@ -68,7 +69,7 @@ async function actOnXLSX(file) {
 }
 
 // Click on (invisible) file input to change spreadsheet
- // eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars
 function changeSheet() {
     wbChange.click();
 }
@@ -85,7 +86,7 @@ function checkUrl(str) {
 }
 
 // Go back to site link page
- // eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars
 function changeSiteLink() {
     document.getElementById('site_preview').style.display = "none";
     document.getElementById('new_project').style.display = "inline";
@@ -99,28 +100,34 @@ function loadScrapeSelectPage() {
 }
 
 // Open (go back to) main page
- // eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars
 function mainPage() {
     ipcRenderer.send('mainPage');
 }
 
+// Open fullscreen preview window to select link element to click to open product
+// eslint-disable-next-line no-unused-vars
+function newLink() {
+    var url = webPreview.getURL()
+    ipcRenderer.send('newLinkElement', url);
+}
+
+// Open fullscreen preview window to select text element
+// eslint-disable-next-line no-unused-vars
+function newText() {
+    var url = webPreview.getURL()
+    ipcRenderer.send('newTextElement', url);
+}
+
 // Open fullscreen preview window to select image element
- // eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars
 function newImg() {
     var url = webPreview.getURL()
     ipcRenderer.send('newImgElement', url);
 }
 
-// Open fullscreen preview window to select text element
- // eslint-disable-next-line no-unused-vars
-function newText() {
-    var url = webPreview.getURL()
-    console.log(url);
-    ipcRenderer.send('newTextElement', url);
-}
-
 // Open site preview page
- // eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars
 function previewSite() {
     var url = document.getElementById("input_url").value;
     if (checkUrl(url) === true) {
@@ -136,7 +143,7 @@ function previewSite() {
 }
 
 // Open scraping preview page
- // eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars
 function scrapingPreview() {
     document.getElementById("select_data").style.display = 'none';
     document.getElementById("scraping_preview").style.display = 'inline';
@@ -144,29 +151,18 @@ function scrapingPreview() {
 }
 
 // Click on (invisible) file input to select spreadsheet
- // eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars
 function selectSheet() {
     wbInput.click();
 }
 
 // Load select sheet page 
- // eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars
 function selectSheetPage() {
     document.getElementById("site_preview").style.display = "none";
     document.getElementById("select_sheet").style.display = "flex";
 }
 
-// Prints image xpath in data select page (in white box) and sets element attributes
-ipcRenderer.on('imgXpathRenderer', (event, arg) => {
-    imgArray.push(arg);
-    console.log(imgArray);
-    const newDiv = document.createElement("p")
-    const newContent = document.createTextNode(arg)
-    newDiv.appendChild(newContent);
-    const currentDiv = document.getElementById("scraping_list");
-    newDiv.contentEditable = 'true'
-    currentDiv.insertBefore(newDiv, currentDiv.lastElementChild.nextSibling);
-})
 
 // Show data select page webview element
 ipcRenderer.on('loadWebview', () => {
@@ -184,6 +180,11 @@ ipcRenderer.on('searchXPath', (event, arg) => {
     searchbar_id = arg
 })
 
+// Save passed argument to link array
+ipcRenderer.on('linkXpathRenderer', (event, arg) => {
+    before_product.push(arg);
+})
+
 // Prints text xpath in data select page (in white box) and sets element attributes
 ipcRenderer.on('textXpathRenderer', (event, arg) => {
     textArray.push(arg);
@@ -195,6 +196,18 @@ ipcRenderer.on('textXpathRenderer', (event, arg) => {
     newDiv.contentEditable = 'true'
     currentDiv.insertBefore(newDiv, currentDiv.lastElementChild.nextSibling);
 
+})
+
+// Prints image xpath in data select page (in white box) and sets element attributes
+ipcRenderer.on('imgXpathRenderer', (event, arg) => {
+    imgArray.push(arg);
+    console.log(imgArray);
+    const newDiv = document.createElement("p")
+    const newContent = document.createTextNode(arg)
+    newDiv.appendChild(newContent);
+    const currentDiv = document.getElementById("scraping_list");
+    newDiv.contentEditable = 'true'
+    currentDiv.insertBefore(newDiv, currentDiv.lastElementChild.nextSibling);
 })
 
 // Listen for file inputs and act if file is opened
@@ -229,15 +242,23 @@ async function startScraping(url, searchbar, textarray) {
         await search_elem.sendKeys(codes[i]);
         await search_elem.sendKeys(Key.ENTER);
 
-        let prod_link = await driver.findElement(By.xpath(`//h3[text()='${codes[i]}']`))
-        await prod_link.click();
+        for (let j = 0; j < before_product.length; j++) {
+            let prod_link = await driver.findElement(By.xpath(before_product[j]));
+            console.log(before_product[j]);
+            await prod_link.click();
+        }
 
-        let text_elem = await driver.findElement(By.xpath(textarray[0]));
-        let value = await text_elem.getText();
-        console.log(value);
+        // let prod_link = await driver.findElement(By.xpath(`//h3[text()='${codes[i]}']`))
+        // await prod_link.click();
+        for (let k = 0; k < textarray.length; k++) {
+            let text_elem = await driver.findElement(By.xpath(textarray[k]));
+            let value = await text_elem.getText();
+            console.log(value);
+        }
+
     }
     await driver.quit();
-} 
+}
 
 
 
