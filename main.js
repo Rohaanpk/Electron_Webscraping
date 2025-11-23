@@ -1,8 +1,35 @@
 const url = require('url')
 const path = require('path')
 const { app, BrowserWindow, ipcMain } = require('electron')
+require('dotenv').config();
+const { MongoClient, ServerApiVersion } = require('mongodb');
+
 let mainWindow = null
 let childWindow = null
+
+// MONGODB FUNCTIONS
+// console.log(process.env.MONGO_URI);
+// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+const client = new MongoClient(process.env.MONGO_URI, {
+    serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+    }
+});
+
+async function run() {
+    try {
+        // Connect the client to the server	(optional starting in v4.7)
+        await client.connect();
+        // Send a ping to confirm a successful connection
+        await client.db("admin").command({ ping: 1 });
+        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    } finally {
+        // Ensures that the client will close when you finish/error
+        await client.close();
+    }
+}
 
 // Set initial filepath for the Main Window
 const mainUrl = url.format({
@@ -24,8 +51,8 @@ app.on('ready', function () {
             webviewTag: true,
             sandbox: false,
         }
-    })` `
-    
+    })
+
     // COMMENT OUT IN FINAL BUILD
     // Opening devtools for testing purposes
     mainWindow.webContents.openDevTools()
@@ -191,3 +218,7 @@ ipcMain.on('imgXpathMain', (event, arg) => {
     mainWindow.send('imgXpathRenderer', arg)
     console.log(arg)
 })
+
+
+// Top-level code
+run().catch(console.dir);

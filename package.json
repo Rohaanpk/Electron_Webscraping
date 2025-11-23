@@ -8,11 +8,13 @@
   },
   "dependencies": {
     "cheerio": "^1.1.2",
+    "dotenv": "^17.2.3",
     "electron": "^39.2.1",
     "exceljs": "^4.4.0",
     "git": "^0.1.5",
     "jquery": "^3.7.1",
     "mime": "^4.1.0",
+    "mongodb": "^7.0.0",
     "selenium": "^2.20.0",
     "selenium-webdriver": "^4.38.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",

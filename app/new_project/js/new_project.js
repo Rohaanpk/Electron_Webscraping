@@ -1,11 +1,10 @@
 // const { val } = require('cheerio/lib/api/attributes');
 // const { text } = require('cheerio/lib/api/manipulation');
 // const { get } = require('cheerio/lib/api/traversing');
-const { ipcRenderer } = require('electron')
-// const fs = require("fs");
-// const { parse } = require('path');
-const XLSX = require("xlsx")
+const { ipcRenderer } = require('electron');
+const XLSX = require("xlsx");
 const { By, Builder, Browser, Key } = require('selenium-webdriver');
+
 
 // Set array var's
 var textArray = []
@@ -259,6 +258,5 @@ async function startScraping(url, searchbar, textarray) {
     }
     await driver.quit();
 }
-
 
 
