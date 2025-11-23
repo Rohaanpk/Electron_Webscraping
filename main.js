@@ -24,13 +24,16 @@ app.on('ready', function () {
             webviewTag: true,
             sandbox: false,
         }
-    })
-
-
+    })` `
+    
+    // COMMENT OUT IN FINAL BUILD
+    // Opening devtools for testing purposes
     mainWindow.webContents.openDevTools()
+
+    // Load Site URL
     mainWindow.loadURL(mainUrl)
 
-
+    // Run on Main Window Page load
     mainWindow.webContents.on('dom-ready', function () {
         console.log('user-agent:', mainWindow.webContents.getUserAgent());
         mainWindow.webContents.openDevTools()
@@ -38,12 +41,15 @@ app.on('ready', function () {
         mainWindow.show()
     })
 
-
+    // Quit App on Main Window Closed
     mainWindow.on('closed', function () {
         mainWindow = null
         app.quit()
     })
 
+
+    // Define Hidden Child window 
+    // Initialise in function call later ? 
     childWindow = new BrowserWindow({
         parent: mainWindow,
         center: true,
@@ -58,10 +64,15 @@ app.on('ready', function () {
         }
     })
 
-    childWindow.webContents.openDevTools()
-    childWindow.webContents.on('did-finish-load', function () {
-    })
 
+    // COMMENT OUT IN FINAL BUILD
+    // Opening devtools for testing purposes
+    childWindow.webContents.openDevTools()
+
+    // childWindow.webContents.on('did-finish-load', function () {
+    // })
+
+    // Hide Child window on close
     childWindow.on('close', event => {
         event.preventDefault();
         childWindow.hide();
@@ -162,6 +173,7 @@ ipcMain.on('searchXpath', (event, arg) => {
     mainWindow.send("searchXPath", arg)
 })
 
+// Sends link Xpath to Mainwindow to be stored as a var
 ipcMain.on('linkXpathMain', (event, arg) => {
     console.log(arg);
     mainWindow.send('linkXpathRenderer', arg);
