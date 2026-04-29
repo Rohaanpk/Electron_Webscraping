@@ -62,12 +62,12 @@
             <button class="scraping-button" onclick="scrapingPreview()">START SCRAPING</button>
         </div>
 
-        <webview id="web_preview" class="data-prep"></webview>
+        <webview id="web_preview" class="data-prep" preload="../js/preload.js" nodeintegration></webview>
 
         <div class='quad-buttons'>
-            <button class='skinnier-buttons' onclick="newLink()">ADD NEW PRODUCT LINK</button>
+            <!-- <button class='skinnier-buttons' onclick="newLink()">ADD NEW PRODUCT LINK</button>
             <button class='skinnier-buttons' onclick="newText()">ADD NEW TEXT ELEMENT</button>
-            <button class='skinnier-buttons' onclick="newImg()">ADD NEW IMAGE ELEMENT</button>
+            <button class='skinnier-buttons' onclick="newImg()">ADD NEW IMAGE ELEMENT</button> -->
             <button class='skinnier-buttons' onclick="changeSheet()">CHANGE SPREADSHEET</button>
             <input id="file_change" type="file" name="name" style="display: none;" accept=".csv,.xlsx" />
         </div>
