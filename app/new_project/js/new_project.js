@@ -18,7 +18,17 @@ const wbInput = document.getElementById('file_input');
 const wbChange = document.getElementById('file_change');
 
 
-// Parses selected excel file
+/**
+ * Parses the first worksheet of an uploaded spreadsheet and extracts column A values
+ * into the global `codes` array.
+ *
+ * Notes:
+ * - Uses `FileReader` in the renderer process to read the file into an ArrayBuffer.
+ * - Maintains row alignment by inserting empty strings for missing A-row cells.
+ *
+ * @param {File} file The user-selected `.xlsx`/`.csv` file.
+ * @returns {Promise<void>} Resolves when parsing completes and `codes` is populated.
+ */
 async function actOnXLSX(file) {
     // Reads file
     const fileReader = new FileReader();
@@ -67,13 +77,22 @@ async function actOnXLSX(file) {
     console.log(codes);
 }
 
-// Click on (invisible) file input to change spreadsheet
+/**
+ * Triggers the hidden "change spreadsheet" file input.
+ *
+ * @returns {void}
+ */
 // eslint-disable-next-line no-unused-vars
 function changeSheet() {
     wbChange.click();
 }
 
-// Check if valid URL
+/**
+ * Validates a string as a URL using the built-in `URL` constructor.
+ *
+ * @param {string} str The URL string from the input field.
+ * @returns {boolean} True if `str` parses as a URL; otherwise false.
+ */
 function checkUrl(str) {
     try {
         new URL(str);
@@ -84,48 +103,85 @@ function checkUrl(str) {
     return true;
 }
 
-// Go back to site link page
+/**
+ * Returns the UI to the initial "enter URL" step.
+ *
+ * @returns {void}
+ */
 // eslint-disable-next-line no-unused-vars
 function changeSiteLink() {
     document.getElementById('site_preview').style.display = "none";
     document.getElementById('new_project').style.display = "inline";
 }
 
-// Load site link confirm page
+/**
+ * Loads the URL entered by the user into the selection `webview` and notifies the
+ * main process that the app is ready to move into the selector-prep step.
+ *
+ * Electron note:
+ * - This uses IPC (`loadSearchPreview`) to coordinate UI state changes that are
+ *   driven from the main process.
+ *
+ * @returns {void}
+ */
 function loadScrapeSelectPage() {
     link = document.getElementById("input_url").value;
     document.getElementById("web_preview").setAttribute('src', link)
     ipcRenderer.send('loadSearchPreview', link);
 }
 
-// Open (go back to) main page
+/**
+ * Requests navigation back to the landing page.
+ *
+ * Electron note:
+ * - The renderer cannot directly "navigate" the `BrowserWindow` to other files;
+ *   it asks the main process to load the appropriate HTML.
+ *
+ * @returns {void}
+ */
 // eslint-disable-next-line no-unused-vars
 function mainPage() {
     ipcRenderer.send('mainPage');
 }
 
-// Open fullscreen preview window to select link element to click to open product
+/**
+ * (Currently unused) Requests a separate selection flow for a "product link" element.
+ *
+ * @returns {void}
+ */
 // eslint-disable-next-line no-unused-vars
 function newLink() {
     var url = webPreview.getURL()
     ipcRenderer.send('newLinkElement', url);
 }
 
-// Open fullscreen preview window to select text element
+/**
+ * (Currently unused) Requests a separate selection flow for a text element.
+ *
+ * @returns {void}
+ */
 // eslint-disable-next-line no-unused-vars
 function newText() {
     var url = webPreview.getURL()
     ipcRenderer.send('newTextElement', url);
 }
 
-// Open fullscreen preview window to select image element
+/**
+ * (Currently unused) Requests a separate selection flow for an image element.
+ *
+ * @returns {void}
+ */
 // eslint-disable-next-line no-unused-vars
 function newImg() {
     var url = webPreview.getURL()
     ipcRenderer.send('newImgElement', url);
 }
 
-// Open site preview page
+/**
+ * Validates the entered URL and, if valid, shows a preview step with an embedded `webview`.
+ *
+ * @returns {string} The URL string from the input field.
+ */
 // eslint-disable-next-line no-unused-vars
 function previewSite() {
     var url = document.getElementById("input_url").value;
@@ -141,7 +197,11 @@ function previewSite() {
     return url
 }
 
-// Open scraping preview page
+/**
+ * Switches the UI into "scraping preview" mode and starts the scraping loop.
+ *
+ * @returns {void}
+ */
 // eslint-disable-next-line no-unused-vars
 function scrapingPreview() {
     document.getElementById("select_data").style.display = 'none';
@@ -149,13 +209,21 @@ function scrapingPreview() {
     startScraping(link, searchbar_id, textArray);
 }
 
-// Click on (invisible) file input to select spreadsheet
+/**
+ * Triggers the hidden spreadsheet file input.
+ *
+ * @returns {void}
+ */
 // eslint-disable-next-line no-unused-vars
 function selectSheet() {
     wbInput.click();
 }
 
-// Load select sheet page 
+/**
+ * Moves the UI from site preview to the spreadsheet selection step.
+ *
+ * @returns {void}
+ */
 // eslint-disable-next-line no-unused-vars
 function selectSheetPage() {
     document.getElementById("site_preview").style.display = "none";
@@ -163,28 +231,61 @@ function selectSheetPage() {
 }
 
 
-// Show data select page webview element
+/**
+ * IPC: main process signals that the UI should reveal the selector-prep section.
+ *
+ * @listens ipcRenderer#loadWebview
+ * @returns {void}
+ */
 ipcRenderer.on('loadWebview', () => {
     document.getElementById("select_sheet").style.display = "none";
     document.getElementById("select_data").style.display = "inline";
 })
 
-// Log searchbar xpath to console
+/**
+ * IPC: debug log hook for the searchbar XPath.
+ *
+ * @listens ipcRenderer#printSearchXpath
+ * @param {Electron.IpcRendererEvent} _event
+ * @param {string} arg XPath string.
+ * @returns {void}
+ */
 ipcRenderer.on('printSearchXpath', (event, arg) => {
     console.log(arg)
 })
 
-// Save passed argument as searchbar Xpath
+/**
+ * IPC: stores the selected searchbar XPath in `searchbar_id`.
+ *
+ * @listens ipcRenderer#searchXPath
+ * @param {Electron.IpcRendererEvent} _event
+ * @param {string} arg XPath for the search input element.
+ * @returns {void}
+ */
 ipcRenderer.on('searchXPath', (event, arg) => {
     searchbar_id = arg
 })
 
-// Save passed argument to link array
+/**
+ * IPC: stores an XPath for an element to click before scraping (e.g., product link chain).
+ *
+ * @listens ipcRenderer#linkXpathRenderer
+ * @param {Electron.IpcRendererEvent} _event
+ * @param {string} arg XPath for a clickable element.
+ * @returns {void}
+ */
 ipcRenderer.on('linkXpathRenderer', (event, arg) => {
     before_product.push(arg);
 })
 
-// Prints text xpath in data select page (in white box) and sets element attributes
+/**
+ * IPC: adds a selected text XPath to `textArray` and renders it into the UI list.
+ *
+ * @listens ipcRenderer#textXpathRenderer
+ * @param {Electron.IpcRendererEvent} _event
+ * @param {string} arg XPath for a text-containing element.
+ * @returns {void}
+ */
 ipcRenderer.on('textXpathRenderer', (event, arg) => {
     textArray.push(arg);
     console.log(textArray);
@@ -197,7 +298,14 @@ ipcRenderer.on('textXpathRenderer', (event, arg) => {
 
 })
 
-// Prints image xpath in data select page (in white box) and sets element attributes
+/**
+ * IPC: adds a selected image XPath to `imgArray` and renders it into the UI list.
+ *
+ * @listens ipcRenderer#imgXpathRenderer
+ * @param {Electron.IpcRendererEvent} _event
+ * @param {string} arg XPath for an image element.
+ * @returns {void}
+ */
 ipcRenderer.on('imgXpathRenderer', (event, arg) => {
     imgArray.push(arg);
     console.log(imgArray);
@@ -209,7 +317,11 @@ ipcRenderer.on('imgXpathRenderer', (event, arg) => {
     currentDiv.insertBefore(newDiv, currentDiv.lastElementChild.nextSibling);
 })
 
-// Listen for file inputs and act if file is opened
+/**
+ * Handles replacing the currently loaded spreadsheet.
+ *
+ * @returns {void}
+ */
 wbChange.addEventListener("change", () => {
     wbInput.files.length = 0
     if (wbChange.files.length === 0)
@@ -218,6 +330,11 @@ wbChange.addEventListener("change", () => {
     actOnXLSX(wbChange.files[0]);
 }, false);
 
+/**
+ * Handles selecting the initial spreadsheet, then advances to selector prep.
+ *
+ * @returns {void}
+ */
 wbInput.addEventListener("change", () => {
     wbInput.files.length = 0
     if (wbInput.files.length === 0)
@@ -228,7 +345,20 @@ wbInput.addEventListener("change", () => {
 }, false);
 
 
+
+// WORK ON LATER...
 // SCRAPING FUNCTION, WORK IN PROGRESS
+/**
+ * Launches a Chrome Selenium session and performs a basic scraping loop:
+ * - For each code in the spreadsheet, type it into the searchbar and submit.
+ * - Optionally click through any configured "before product" elements.
+ * - Extract text from each configured text XPath.
+ *
+ * @param {string} url Starting URL for the driver.
+ * @param {string} searchbar XPath for the search input element.
+ * @param {string[]} textarray List of XPaths to extract text from.
+ * @returns {Promise<void>} Resolves when the driver quits.
+ */
 async function startScraping(url, searchbar, textarray) {
     let driver = await new Builder().forBrowser(Browser.CHROME).build();
     await driver.get(url);
