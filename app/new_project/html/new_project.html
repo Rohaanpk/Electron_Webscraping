@@ -59,6 +59,17 @@
             <ul class="scraping-list" id="scraping_list">
                 <h1 class='url-heading' id="url_heading"></h1>
             </ul>
+            <div style="padding: 0.8rem;">
+                <h3 style="margin: 0 0 0.4rem 0;">Saved Plans</h3>
+                <select id="saved_plans_select" style="width: 100%; margin-bottom: 0.4rem;">
+                    <option value="">No plans loaded</option>
+                </select>
+                <div style="display: flex; gap: 0.4rem;">
+                    <button class="skinnier-buttons" onclick="refreshSavedPlans()">REFRESH PLANS</button>
+                    <button class="skinnier-buttons" onclick="applySelectedPlan()">APPLY PLAN</button>
+                </div>
+                <p id="plan_status" style="font-size: 0.85rem; margin: 0.4rem 0 0 0;"></p>
+            </div>
             <button class="scraping-button" onclick="scrapingPreview()">START SCRAPING</button>
         </div>
 
