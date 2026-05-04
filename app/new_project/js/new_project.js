@@ -60,7 +60,7 @@ function syncGuestWebviewBounds() {
         h = Math.max(h, host.clientHeight || 1);
     }
     webPreview.style.boxSizing = "border-box";
-    webPreview.style.display = "block";
+    /* Do not set display:block — Electron's <webview> needs default flex so the guest iframe fills. */
     webPreview.style.width = `${w}px`;
     webPreview.style.height = `${h}px`;
 }
