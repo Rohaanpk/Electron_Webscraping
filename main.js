@@ -13,7 +13,6 @@ require('dotenv').config();
 const { MongoClient, ServerApiVersion } = require('mongodb');
 
 let mainWindow = null
-// let childWindow = null
 
 // --- Mongo (startup smoke test client; per-operation clients use `withMongo`) ---
 // console.log(process.env.MONGO_URI);
@@ -83,10 +82,8 @@ app.on('ready', function () {
     // Load Site URL
     mainWindow.loadURL(mainUrl)
 
-    // Run on Main Window Page load
     mainWindow.webContents.on('dom-ready', function () {
         console.log('user-agent:', mainWindow.webContents.getUserAgent());
-        mainWindow.webContents.openDevTools()
         mainWindow.setResizable(true);
         mainWindow.show()
     })
@@ -123,11 +120,8 @@ ipcMain.on('newProject', () => {
 // --- IPC: guest `<webview>` context menu (main builds `Menu`, preload reacts) ---
 /**
  * IPC: shows a native context menu for a webContents (typically a `webview`).
- *
- * The `webview` preload triggers this on right-click. Each item maps to the same
- * selection modes as `search_preload.js`, `link_preload.js`, `text_preload.js`, and
- * `img_preload.js`: main sends a distinct channel back so preload can validate the
- * right-clicked element and emit the same IPC payloads as those scripts did on click.
+ * Preload (`preload.js`) sends `show-ctxmenu` on right-click; menu callbacks route to
+ * `ctxmenu-select-*` so the guest applies search/link/text/img validation rules.
  *
  * @listens ipcMain#show-ctxmenu
  * @param {Electron.IpcMainEvent} _e
@@ -244,98 +238,7 @@ ipcMain.handle('saveScrapeRun', async (_event, runDoc) => {
 
 
 /**
- * IPC: receives an XPath string computed in a `webview` preload.
- * Currently it is only logged; in a fuller implementation this would be stored
- * and forwarded to the renderer to build up scraping selectors.
- *
- * @listens ipcMain#storeXpath
- * @param {Electron.IpcMainEvent} _e
- * @param {string} arg XPath expression for the last selected element.
- */
-ipcMain.on('storeXpath', (_e, arg) => {
-    console.log(arg);
-})
-
-/**
- * IPC: legacy no-op — older preloads notified main to close a child `BrowserWindow`.
- * Single-window flow ignores this; kept so guest sends do not rely on a listener.
- *
- * @listens ipcMain#childWindowClose
- */
-ipcMain.on('childWindowClose', () => {
-    // No secondary window in current architecture.
-})
-
-// // Loads select search page
-/**
- * IPC: indicates the user has selected a site URL and is ready to prepare selectors.
- * Current behavior: tells the renderer to reveal the `webview` used for element picking.
- *
- * @listens ipcMain#loadSearchPreview
- * @param {Electron.IpcMainEvent} _e
- * @param {string} arg Site URL to preview.
- */
-ipcMain.on('loadSearchPreview', (_e, arg) => {
-    console.log(arg);
-    mainWindow.send('loadWebview');
-
-    // childWindow.loadFile('app/new_project/html/select_search.html')
-
-    // childWindow.webContents.on('dom-ready', function () {
-    //     console.log('childWindow DOM-READY => send back html')
-    //     childWindow.send('loadSearchUrl', arg)
-    //     console.log(arg)
-    //     childWindow.setBounds(mainWindow.getBounds())
-    //     childWindow.show()
-    //     mainWindow.send('loadWebview')
-    // })
-})
-
-
-// // Loads select link page
-// ipcMain.on('newLinkElement', (event, arg) => {
-//     childWindow.loadFile('app/new_project/html/select_link.html')
-
-//     childWindow.webContents.on('dom-ready', function () {
-//         console.log('childWindow DOM-READY => send back html')
-//         childWindow.send('loadLinkUrl', arg)
-//         console.log(arg)
-
-//         childWindow.show()
-//     })
-// })
-
-
-// // Loads select text page
-// ipcMain.on('newTextElement', (event, arg) => {
-//     childWindow.loadFile('app/new_project/html/select_text.html')
-
-//     childWindow.webContents.on('dom-ready', function () {
-//         console.log('childWindow DOM-READY => send back html')
-//         childWindow.send('loadTextUrl', arg)
-//         console.log(arg)
-
-//         childWindow.show()
-//     })
-// })
-
-
-// // Loads select image Page
-// ipcMain.on('newImgElement', (event, arg) => {
-//     childWindow.loadFile('app/new_project/html/select_img.html')
-
-//     childWindow.webContents.on('dom-ready', function () {
-//         console.log('childWindow DOM-READY => send back html')
-//         childWindow.send('loadImgUrl', arg)
-//         console.log(arg)
-
-//         childWindow.show()
-//     })
-// })
-
-
-/**
- * IPC: forwards "wrong element" feedback to the host window (same channel name as legacy overlay pages).
+ * IPC: forwards invalid guest selections to the host window (`wrong-search`).
  *
  * @listens ipcMain#wrongSearchClick
  */
@@ -346,23 +249,11 @@ ipcMain.on('wrongSearchClick', (_event, arg) => {
 })
 
 /**
- * IPC: debug — log XPath during search-bar flow.
- *
- * @listens ipcMain#beforeSearch
- */
-ipcMain.on('beforeSearch', (_event, arg) => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('printSearchXpath', arg);
-    }
-})
-
-/**
  * IPC: search bar XPath from guest (INPUT-only validation done in preload).
  *
  * @listens ipcMain#searchXpath
  */
 ipcMain.on('searchXpath', (_event, arg) => {
-    console.log(arg);
     if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send('searchXPath', arg);
     }
@@ -374,7 +265,6 @@ ipcMain.on('searchXpath', (_event, arg) => {
  * @listens ipcMain#linkXpathMain
  */
 ipcMain.on('linkXpathMain', (_event, arg) => {
-    console.log(arg);
     if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send('linkXpathRenderer', arg);
     }
@@ -386,7 +276,6 @@ ipcMain.on('linkXpathMain', (_event, arg) => {
  * @listens ipcMain#textXpathMain
  */
 ipcMain.on('textXpathMain', (_event, arg) => {
-    console.log(arg);
     if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send('textXpathRenderer', arg);
     }
@@ -398,7 +287,6 @@ ipcMain.on('textXpathMain', (_event, arg) => {
  * @listens ipcMain#imgXpathMain
  */
 ipcMain.on('imgXpathMain', (_event, arg) => {
-    console.log(arg);
     if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send('imgXpathRenderer', arg);
     }

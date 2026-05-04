@@ -14,19 +14,13 @@
  * - The site under test loads inside `<webview id="web_preview">` with its own guest
  *   process; guest → main → host IPC carries selector picks back here.
  */
-// const { val } = require('cheerio/lib/api/attributes');
-// const { text } = require('cheerio/lib/api/manipulation');
-// const { get } = require('cheerio/lib/api/traversing');
 const { ipcRenderer } = require('electron');
 const XLSX = require("xlsx");
 const { By, Builder, Browser, Key } = require('selenium-webdriver');
 
 // =============================================================================
-// DOM references & legacy parallel arrays (kept for older scraping paths / UI)
+// DOM references
 // =============================================================================
-var textArray = []
-var imgArray = []
-var before_product = []
 var codes = []
 var link = ""
 const webPreview = document.getElementById("web_preview");
@@ -236,14 +230,14 @@ function normalizeSelectorPayload(payload, key) {
  * @param {"textFields"|"imageFields"} target
  * @param {{ key?: string, identifierType: "xpath"|"css"|"id"|"className", identifierValue: string, xpath?: string, attr?: "src"|"href" }} selector
  * @param {{ attr?: "src"|"href", multiple?: boolean }} [options]
- * @returns {void}
+ * @returns {boolean} True if a new field was added.
  */
 function addExtractionField(target, selector, options = {}) {
-    if (!selector.identifierValue) return;
+    if (!selector.identifierValue) return false;
     const existing = scrapePlan.extraction[target].find(
         (f) => f.identifierType === selector.identifierType && f.identifierValue === selector.identifierValue
     );
-    if (existing) return;
+    if (existing) return false;
 
     if (target === "textFields") {
         scrapePlan.extraction.textFields.push(
@@ -253,7 +247,7 @@ function addExtractionField(target, selector, options = {}) {
                 selector.identifierValue
             )
         );
-        return;
+        return true;
     }
 
     const d = scrapePlan.extraction.defaults || { imageAttr: "src", imageMultiple: true };
@@ -266,6 +260,7 @@ function addExtractionField(target, selector, options = {}) {
         multiple: options.multiple ?? selector.multiple ?? d.imageMultiple,
         attr: options.attr ?? selector.attr ?? d.imageAttr,
     });
+    return true;
 }
 
 /**
@@ -273,10 +268,10 @@ function addExtractionField(target, selector, options = {}) {
  *
  * @param {"openResultSelectors"|"preSearchClickSelectors"|"variantOptionSelectors"} target
  * @param {{ key?: string, identifierType: "xpath"|"css"|"id"|"className", identifierValue: string }} selector
- * @returns {void}
+ * @returns {boolean} True if a new selector was added.
  */
 function addNavigationField(target, selector) {
-    if (!selector.identifierValue) return;
+    if (!selector.identifierValue) return false;
     const descriptor = buildSelectorDescriptor(
         selector.key || `nav_${selector.identifierType}_${selector.identifierValue}`,
         selector.identifierType,
@@ -288,7 +283,7 @@ function addNavigationField(target, selector) {
             (f) => f.identifierType === descriptor.identifierType && f.identifierValue === descriptor.identifierValue
         );
         if (!exists) scrapePlan.site.preSearchClickSelectors.push(descriptor);
-        return;
+        return !exists;
     }
 
     const list =
@@ -299,6 +294,7 @@ function addNavigationField(target, selector) {
         (f) => f.identifierType === descriptor.identifierType && f.identifierValue === descriptor.identifierValue
     );
     if (!exists) list.push(descriptor);
+    return !exists;
 }
 
 /**
@@ -429,17 +425,6 @@ function renderSelectorsFromPlan() {
 }
 
 /**
- * Resets legacy compatibility arrays from the current `scrapePlan`.
- *
- * @returns {void}
- */
-function syncLegacyArraysFromPlan() {
-    before_product = scrapePlan.navigation.openResultSelectors.map((s) => s.identifierValue);
-    textArray = scrapePlan.extraction.textFields.map((s) => s.identifierValue);
-    imgArray = scrapePlan.extraction.imageFields.map((s) => s.identifierValue);
-}
-
-/**
  * Normalizes a selector-like object to the canonical descriptor shape.
  *
  * @param {unknown} selector
@@ -513,7 +498,6 @@ function applyPlanData(rawPlan) {
         document.getElementById("url_heading").innerHTML = scrapePlan.site.baseUrl;
     }
 
-    syncLegacyArraysFromPlan();
     renderSelectorsFromPlan();
     syncPlanSettingsFormFromPlan();
 }
@@ -676,14 +660,8 @@ function changeSiteLink() {
 }
 
 /**
- * Loads the URL entered by the user into the selection `webview` and notifies the
- * main process that the app is ready to move into the selector-prep step.
- *
- * Electron note:
- * - This uses IPC (`loadSearchPreview`) to coordinate UI state changes that are
- *   driven from the main process.
- * - Sets the **guest** `<webview>` `src` to the target site; the guest loads in a
- *   separate process and runs `preload.js` for context-menu selector capture.
+ * Shows selector prep, loads the URL into the guest `<webview>`, and syncs layout.
+ * Guest content runs `preload.js` for context-menu selector capture.
  *
  * @returns {void}
  */
@@ -691,8 +669,21 @@ function loadScrapeSelectPage() {
     link = document.getElementById("input_url").value;
     scrapePlan.site.baseUrl = link;
     document.getElementById("web_preview").setAttribute('src', link)
-    ipcRenderer.send('loadSearchPreview', link);
+    revealSelectorPrep();
+}
+
+/**
+ * Reveals `#select_data` (sidebar + webview) after spreadsheet selection.
+ *
+ * @returns {void}
+ */
+function revealSelectorPrep() {
+    const sheet = document.getElementById("select_sheet");
+    const data = document.getElementById("select_data");
+    if (sheet) sheet.style.display = "none";
+    if (data) data.style.display = "flex";
     syncPlanSettingsFormFromPlan();
+    refreshSavedPlans();
     burstSyncGuestWebviewBounds();
 }
 
@@ -708,39 +699,6 @@ function loadScrapeSelectPage() {
 // eslint-disable-next-line no-unused-vars
 function mainPage() {
     ipcRenderer.send('mainPage');
-}
-
-/**
- * (Currently unused) Requests a separate selection flow for a "product link" element.
- *
- * @returns {void}
- */
-// eslint-disable-next-line no-unused-vars
-function newLink() {
-    var url = webPreview.getURL()
-    ipcRenderer.send('newLinkElement', url);
-}
-
-/**
- * (Currently unused) Requests a separate selection flow for a text element.
- *
- * @returns {void}
- */
-// eslint-disable-next-line no-unused-vars
-function newText() {
-    var url = webPreview.getURL()
-    ipcRenderer.send('newTextElement', url);
-}
-
-/**
- * (Currently unused) Requests a separate selection flow for an image element.
- *
- * @returns {void}
- */
-// eslint-disable-next-line no-unused-vars
-function newImg() {
-    var url = webPreview.getURL()
-    ipcRenderer.send('newImgElement', url);
 }
 
 /**
@@ -854,35 +812,8 @@ function selectSheetPage() {
 }
 
 // =============================================================================
-// IPC — main process → host renderer (selector prep, forwarded guest events)
+// IPC — main process → host renderer (forwarded guest events)
 // =============================================================================
-/**
- * IPC: main process signals that the UI should reveal the selector-prep section.
- *
- * @listens ipcRenderer#loadWebview
- * @returns {void}
- */
-ipcRenderer.on('loadWebview', () => {
-    document.getElementById("select_sheet").style.display = "none";
-    // Match `#select_data` rules in `style.css` (`display: flex`); inline `block` would break the shell layout.
-    document.getElementById("select_data").style.display = "flex";
-    syncPlanSettingsFormFromPlan();
-    refreshSavedPlans();
-    burstSyncGuestWebviewBounds();
-})
-
-/**
- * IPC: debug log hook for the searchbar XPath.
- *
- * @listens ipcRenderer#printSearchXpath
- * @param {Electron.IpcRendererEvent} _event
- * @param {string} arg XPath string.
- * @returns {void}
- */
-ipcRenderer.on('printSearchXpath', (event, arg) => {
-    console.log(arg)
-})
-
 /**
  * IPC: stores the selected searchbar selector in `scrapePlan.site.searchInputSelector`.
  *
@@ -910,53 +841,43 @@ ipcRenderer.on('searchXPath', (event, arg) => {
  * @param {string} arg XPath for a clickable element.
  * @returns {void}
  */
-ipcRenderer.on('linkXpathRenderer', (event, arg) => {
+ipcRenderer.on('linkXpathRenderer', (_event, arg) => {
     const selector = normalizeSelectorPayload(arg, `link_${scrapePlan.navigation.openResultSelectors.length + 1}`);
-    before_product.push(selector.xpath || selector.identifierValue);
-    addNavigationField("openResultSelectors", selector);
+    if (addNavigationField("openResultSelectors", selector)) {
+        appendSelectorUiLine(`openResult -> ${selector.identifierType}: ${selector.identifierValue}`);
+    }
 })
 
 /**
- * IPC: adds a selected text XPath to `textArray` and renders it into the UI list.
+ * IPC: adds a selected text field and appends a line to the selector list.
  *
  * @listens ipcRenderer#textXpathRenderer
  * @param {Electron.IpcRendererEvent} _event
  * @param {string} arg XPath for a text-containing element.
  * @returns {void}
  */
-ipcRenderer.on('textXpathRenderer', (event, arg) => {
+ipcRenderer.on('textXpathRenderer', (_event, arg) => {
     const selector = normalizeSelectorPayload(arg, `text_${scrapePlan.extraction.textFields.length + 1}`);
-    textArray.push(selector.xpath || selector.identifierValue);
-    addExtractionField("textFields", selector);
-    console.log(textArray);
-    const li = document.createElement("li");
-    li.className = "selector-line";
-    li.appendChild(document.createTextNode(`${selector.identifierType}: ${selector.identifierValue}`));
-    const currentDiv = document.getElementById("scraping_list");
-    li.contentEditable = "true";
-    currentDiv.insertBefore(li, currentDiv.lastElementChild.nextSibling);
-
+    if (!addExtractionField("textFields", selector)) return;
+    const added = scrapePlan.extraction.textFields[scrapePlan.extraction.textFields.length - 1];
+    appendSelectorUiLine(`${added.key} -> ${added.identifierType}: ${added.identifierValue}`);
 })
 
 /**
- * IPC: adds a selected image XPath to `imgArray` and renders it into the UI list.
+ * IPC: adds a selected image field and appends a line to the selector list.
  *
  * @listens ipcRenderer#imgXpathRenderer
  * @param {Electron.IpcRendererEvent} _event
  * @param {string} arg XPath for an image element.
  * @returns {void}
  */
-ipcRenderer.on('imgXpathRenderer', (event, arg) => {
+ipcRenderer.on('imgXpathRenderer', (_event, arg) => {
     const selector = normalizeSelectorPayload(arg, `images_${scrapePlan.extraction.imageFields.length + 1}`);
-    imgArray.push(selector.xpath || selector.identifierValue);
-    addExtractionField("imageFields", selector, { attr: selector.attr || "src" });
-    console.log(imgArray);
-    const li = document.createElement("li");
-    li.className = "selector-line";
-    li.appendChild(document.createTextNode(`${selector.identifierType}: ${selector.identifierValue} (attr: ${selector.attr || "src"})`));
-    const currentDiv = document.getElementById("scraping_list");
-    li.contentEditable = "true";
-    currentDiv.insertBefore(li, currentDiv.lastElementChild.nextSibling);
+    if (!addExtractionField("imageFields", selector, { attr: selector.attr || "src" })) return;
+    const added = scrapePlan.extraction.imageFields[scrapePlan.extraction.imageFields.length - 1];
+    appendSelectorUiLine(
+        `${added.key} -> ${added.identifierType}: ${added.identifierValue} (attr: ${added.attr || "src"})`
+    );
 })
 
 /**

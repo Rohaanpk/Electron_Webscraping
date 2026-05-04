@@ -9,7 +9,6 @@
  * - Main forwards those events to the host renderer (`new_project.js`), which merges them
  *   into `scrapePlan`.
  *
- * This consolidates the older per-mode preloads (`search_preload.js`, etc.) into one file.
  */
 const { webFrame, ipcRenderer } = require('electron')
 
@@ -112,10 +111,10 @@ function buildSelectorPayload(el, forcedAttr = null) {
 }
 
 // =============================================================================
-// Context-menu modes — validation mirrors legacy `*_preload.js` click handlers
+// Context-menu modes — element validation before IPC
 // =============================================================================
 /**
- * Mirrors `search_preload.js`: only `<input>` is accepted as the search bar.
+ * Search bar mode: only `<input>` is accepted.
  *
  * @param {Element} el The element the user right-clicked.
  * @returns {void}
@@ -124,14 +123,13 @@ function applySearchBarSelection(el) {
     const selector = buildSelectorPayload(el);
     if (el.tagName === 'INPUT') {
         ipcRenderer.send('searchXpath', selector);
-        ipcRenderer.send('childWindowClose', selector);
     } else {
         ipcRenderer.send('wrongSearchClick', selector.xpath || selector.identifierValue);
     }
 }
 
 /**
- * Mirrors `link_preload.js`: any element’s XPath is used as the product link target.
+ * Product link: any element’s stable selector is used as a navigation target.
  *
  * @param {Element} el The element the user right-clicked.
  * @returns {void}
@@ -139,11 +137,10 @@ function applySearchBarSelection(el) {
 function applyLinkSelection(el) {
     const selector = buildSelectorPayload(el);
     ipcRenderer.send('linkXpathMain', selector);
-    ipcRenderer.send('childWindowClose', selector);
 }
 
 /**
- * Mirrors `text_preload.js`: elements with empty `innerHTML` are rejected; otherwise XPath is sent.
+ * Text scrape: elements with empty `innerHTML` are rejected.
  *
  * @param {Element} el The element the user right-clicked.
  * @returns {void}
@@ -155,11 +152,10 @@ function applyTextSelection(el) {
     }
     const selector = buildSelectorPayload(el);
     ipcRenderer.send('textXpathMain', selector);
-    ipcRenderer.send('childWindowClose', selector);
 }
 
 /**
- * Mirrors `img_preload.js`: only `IMG` or `A` is accepted; other elements trigger `wrongSearchClick`.
+ * Image: only `IMG` or `A` is accepted; other elements trigger `wrongSearchClick`.
  *
  * @param {Element} el The element the user right-clicked.
  * @returns {void}
@@ -170,7 +166,6 @@ function applyImageSelection(el) {
     const selector = buildSelectorPayload(el, attr);
     if (tag === 'IMG' || tag === 'A') {
         ipcRenderer.send('imgXpathMain', selector);
-        ipcRenderer.send('childWindowClose');
     } else {
         ipcRenderer.send('wrongSearchClick', selector.xpath || selector.identifierValue);
     }
@@ -181,8 +176,7 @@ function applyImageSelection(el) {
 // =============================================================================
 /**
  * Right-click: store the target and open the app menu in the main process.
- * The menu items send back one of `ctxmenu-select-*` so we apply the same rules
- * as the four dedicated `*_preload.js` scripts (previously click-to-select).
+ * The menu items send back one of `ctxmenu-select-*` so we apply search/link/text/img rules.
  *
  * @param {MouseEvent} event
  * @returns {void}
