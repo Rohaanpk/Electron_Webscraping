@@ -1,3 +1,11 @@
+/**
+ * @file main.js
+ * Electron **main** process: window lifecycle, native menus, IPC routing, and Mongo helpers.
+ *
+ * IPC patterns used here:
+ * - `ipcMain.on` + `event.sender.send` — fire-and-forget (e.g. context menu → preload).
+ * - `ipcMain.handle` + `ipcRenderer.invoke` — request/response (e.g. save/load scrape plans).
+ */
 const url = require('url')
 const path = require('path')
 const { app, BrowserWindow, ipcMain, Menu } = require('electron')
@@ -7,7 +15,7 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 let mainWindow = null
 // let childWindow = null
 
-// MONGODB FUNCTIONS
+// --- Mongo (startup smoke test client; per-operation clients use `withMongo`) ---
 // console.log(process.env.MONGO_URI);
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(process.env.MONGO_URI, {
@@ -42,8 +50,7 @@ async function run() {
     }
 }
 
-
-// Window Functions
+// --- Window bootstrap ---
 // Set initial filepath for the Main Window
 const mainUrl = url.format({
     protocol: 'file',
@@ -96,6 +103,7 @@ app.on('window-all-closed', function () {
     if (process.platform !== 'darwin') { app.exit() }
 })
 
+// --- IPC: navigation between host HTML pages ---
 /**
  * IPC: renderer requests navigation back to the landing page.
  * @listens ipcMain#mainPage
@@ -112,6 +120,7 @@ ipcMain.on('newProject', () => {
     mainWindow.loadFile('app/new_project/html/new_project.html')
 })
 
+// --- IPC: guest `<webview>` context menu (main builds `Menu`, preload reacts) ---
 /**
  * IPC: shows a native context menu for a webContents (typically a `webview`).
  *
@@ -148,9 +157,10 @@ ipcMain.on('show-ctxmenu', (_e) => {
     });
 });
 
-// Top-level code
+// Startup: optional Mongo connectivity smoke test (see `run()`).
 run().catch(console.dir);
 
+// --- Mongo helpers: short-lived client per `invoke` (keeps Atlas happy vs long-lived handle) ---
 /**
  * Runs a database operation against the configured MongoDB database.
  *

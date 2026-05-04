@@ -1,3 +1,16 @@
+/**
+ * @file preload.js
+ * Preload script injected into the **guest** `<webview>` that loads the target website
+ * (`web_preview` in `new_project.html`).
+ *
+ * Role:
+ * - Capture right-clicks, ask the **main** process to show a native context menu, then
+ *   send structured selector payloads back through IPC (`searchXpath`, `linkXpathMain`, …).
+ * - Main forwards those events to the host renderer (`new_project.js`), which merges them
+ *   into `scrapePlan`.
+ *
+ * This consolidates the older per-mode preloads (`search_preload.js`, etc.) into one file.
+ */
 const { webFrame, ipcRenderer } = require('electron')
 
 /** @type {Element|null} Element under the pointer when the context menu was opened */
@@ -9,6 +22,9 @@ let lastRightClickedElement = null;
  * @param {EventTarget|null} node
  * @returns {Element|null}
  */
+// =============================================================================
+// DOM helpers + selector construction (id / class / css / xpath)
+// =============================================================================
 function resolveContextElement(node) {
     if (!node || !(/** @type {any} */ (node)).nodeType) return null;
     const n = /** @type {Node} */ (node);
@@ -95,6 +111,9 @@ function buildSelectorPayload(el, forcedAttr = null) {
     return { identifierType: 'xpath', identifierValue: xpath || '', xpath, ...(forcedAttr ? { attr: forcedAttr } : {}) };
 }
 
+// =============================================================================
+// Context-menu modes — validation mirrors legacy `*_preload.js` click handlers
+// =============================================================================
 /**
  * Mirrors `search_preload.js`: only `<input>` is accepted as the search bar.
  *
@@ -157,6 +176,9 @@ function applyImageSelection(el) {
     }
 }
 
+// =============================================================================
+// User events — context menu, main-process menu callbacks, hover highlight
+// =============================================================================
 /**
  * Right-click: store the target and open the app menu in the main process.
  * The menu items send back one of `ctxmenu-select-*` so we apply the same rules
@@ -215,6 +237,9 @@ ipcRenderer.on('ctxmenu-select-img', () => {
     applyImageSelection(lastRightClickedElement);
 });
 
+// =============================================================================
+// Guest page bootstrap (zoom, optional jQuery)
+// =============================================================================
 /**
  * Injects jQuery and sets zoom; same bootstrapping as the other `*_preload.js` files.
  *

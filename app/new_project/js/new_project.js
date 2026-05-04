@@ -1,3 +1,19 @@
+/**
+ * @file new_project.js
+ * Renderer process script for the "new project" flow (`new_project.html`).
+ *
+ * Responsibilities:
+ * - Build and edit `scrapePlan` (selectors, start mode, defaults) from the sidebar UI
+ *   and from IPC events forwarded from the embedded `<webview>` preload (`preload.js`).
+ * - Parse spreadsheet column A into `codes[]` for batch runs.
+ * - Run Selenium-driven scraping (`startScraping`) and persist plans/runs via main-process
+ *   IPC (`saveScrapePlan`, `saveScrapeRun`, `loadScrapePlans`).
+ *
+ * Electron architecture:
+ * - This file runs in the **host** renderer (the window loading `new_project.html`).
+ * - The site under test loads inside `<webview id="web_preview">` with its own guest
+ *   process; guest → main → host IPC carries selector picks back here.
+ */
 // const { val } = require('cheerio/lib/api/attributes');
 // const { text } = require('cheerio/lib/api/manipulation');
 // const { get } = require('cheerio/lib/api/traversing');
@@ -5,8 +21,9 @@ const { ipcRenderer } = require('electron');
 const XLSX = require("xlsx");
 const { By, Builder, Browser, Key } = require('selenium-webdriver');
 
-
-// Set array var's
+// =============================================================================
+// DOM references & legacy parallel arrays (kept for older scraping paths / UI)
+// =============================================================================
 var textArray = []
 var imgArray = []
 var before_product = []
@@ -20,6 +37,21 @@ const planStatus = document.getElementById('plan_status');
 const scrapingList = document.getElementById("scraping_list");
 let savedPlansCache = [];
 
+const planNameInput = document.getElementById('plan_name_input');
+const planStartModeEl = document.getElementById('plan_start_mode');
+const planUrlTemplateEl = document.getElementById('plan_url_template');
+const planImgAttrDefaultEl = document.getElementById('plan_img_attr_default');
+const planImgMultipleDefaultEl = document.getElementById('plan_img_multiple_default');
+const planWaitMsEl = document.getElementById('plan_wait_ms');
+const planRetryCountEl = document.getElementById('plan_retry_count');
+const planContinueOnErrorEl = document.getElementById('plan_continue_on_error');
+const planColSkuEl = document.getElementById('plan_col_sku');
+const planColLinkEl = document.getElementById('plan_col_link');
+const planOutputPathEl = document.getElementById('plan_output_path');
+
+// =============================================================================
+// scrapePlan — canonical config object (Mongo-serializable)
+// =============================================================================
 /**
  * Central scraping configuration assembled from UI + context-menu selections.
  * This mirrors the intended Python-style loop, but keeps selectors dynamic per website.
@@ -42,6 +74,11 @@ const scrapePlan = {
     extraction: {
         textFields: [],
         imageFields: [],
+        /** Defaults applied when new image fields are added via context menu (if attr not set on element). */
+        defaults: {
+            imageAttr: "src",
+            imageMultiple: true,
+        },
     },
     input: {
         codeColumn: "A",
@@ -59,6 +96,9 @@ const scrapePlan = {
     }
 };
 
+// =============================================================================
+// Selector helpers — normalize, dedupe, and append to scrapePlan / UI
+// =============================================================================
 /**
  * Builds a normalized selector descriptor.
  *
@@ -139,14 +179,15 @@ function addExtractionField(target, selector, options = {}) {
         return;
     }
 
+    const d = scrapePlan.extraction.defaults || { imageAttr: "src", imageMultiple: true };
     scrapePlan.extraction.imageFields.push({
         ...buildSelectorDescriptor(
             selector.key || `images_${scrapePlan.extraction.imageFields.length + 1}`,
             selector.identifierType,
             selector.identifierValue
         ),
-        multiple: options.multiple ?? true,
-        attr: options.attr ?? selector.attr ?? "src",
+        multiple: options.multiple ?? selector.multiple ?? d.imageMultiple,
+        attr: options.attr ?? selector.attr ?? d.imageAttr,
     });
 }
 
@@ -195,6 +236,72 @@ function setPlanStatus(text) {
 }
 
 /**
+ * Writes current `scrapePlan` values into the Plan settings form.
+ *
+ * @returns {void}
+ */
+function syncPlanSettingsFormFromPlan() {
+    if (planStartModeEl) planStartModeEl.value = scrapePlan.site.startMode || "searchInput";
+    if (planUrlTemplateEl) planUrlTemplateEl.value = scrapePlan.site.generatedSearchUrlTemplate || "";
+    const d = scrapePlan.extraction.defaults || { imageAttr: "src", imageMultiple: true };
+    if (planImgAttrDefaultEl) planImgAttrDefaultEl.value = d.imageAttr === "href" ? "href" : "src";
+    if (planImgMultipleDefaultEl) planImgMultipleDefaultEl.checked = d.imageMultiple !== false;
+    if (planWaitMsEl) planWaitMsEl.value = String(scrapePlan.behavior.waitMs ?? 20000);
+    if (planRetryCountEl) planRetryCountEl.value = String(scrapePlan.behavior.retryCount ?? 2);
+    if (planContinueOnErrorEl) planContinueOnErrorEl.checked = scrapePlan.behavior.continueOnRowError !== false;
+    if (planColSkuEl) planColSkuEl.value = scrapePlan.input.codeColumnName || "SKU";
+    if (planColLinkEl) planColLinkEl.value = scrapePlan.input.linkColumnName || "LINKS";
+    if (planOutputPathEl) planOutputPathEl.value = scrapePlan.output.filePath || "./Output.xlsx";
+}
+
+/**
+ * Reads the Plan settings form into `scrapePlan`.
+ *
+ * @returns {void}
+ */
+function applyPlanSettingsFromForm() {
+    if (planStartModeEl) {
+        const mode = planStartModeEl.value;
+        scrapePlan.site.startMode =
+            mode === "generatedSearchUrl" || mode === "directLink" ? mode : "searchInput";
+    }
+    if (planUrlTemplateEl) scrapePlan.site.generatedSearchUrlTemplate = planUrlTemplateEl.value.trim();
+    if (!scrapePlan.extraction.defaults) {
+        scrapePlan.extraction.defaults = { imageAttr: "src", imageMultiple: true };
+    }
+    if (planImgAttrDefaultEl) {
+        scrapePlan.extraction.defaults.imageAttr = planImgAttrDefaultEl.value === "href" ? "href" : "src";
+    }
+    if (planImgMultipleDefaultEl) {
+        scrapePlan.extraction.defaults.imageMultiple = planImgMultipleDefaultEl.checked;
+    }
+    if (planWaitMsEl) scrapePlan.behavior.waitMs = Math.max(0, parseInt(planWaitMsEl.value, 10) || 0);
+    if (planRetryCountEl) scrapePlan.behavior.retryCount = Math.max(0, parseInt(planRetryCountEl.value, 10) || 0);
+    if (planContinueOnErrorEl) scrapePlan.behavior.continueOnRowError = planContinueOnErrorEl.checked;
+    if (planColSkuEl) scrapePlan.input.codeColumnName = planColSkuEl.value.trim() || "SKU";
+    if (planColLinkEl) scrapePlan.input.linkColumnName = planColLinkEl.value.trim() || "LINKS";
+    if (planOutputPathEl) scrapePlan.output.filePath = planOutputPathEl.value.trim() || "./Output.xlsx";
+    setPlanStatus("Plan settings applied to in-memory scrape plan.");
+}
+
+/**
+ * Persists the current plan to Mongo (after applying form values).
+ *
+ * @returns {Promise<void>}
+ */
+async function savePlanToMongo() {
+    applyPlanSettingsFromForm();
+    await savePlanSnapshot();
+    setPlanStatus("Plan saved to database.");
+    await refreshSavedPlans();
+}
+
+if (typeof window !== 'undefined') {
+    window.applyPlanSettingsFromForm = applyPlanSettingsFromForm;
+    window.savePlanToMongo = savePlanToMongo;
+}
+
+/**
  * Writes a single selector description line to the selector list UI.
  *
  * @param {string} text
@@ -202,10 +309,11 @@ function setPlanStatus(text) {
  */
 function appendSelectorUiLine(text) {
     if (!scrapingList) return;
-    const newDiv = document.createElement("p");
-    newDiv.appendChild(document.createTextNode(text));
-    newDiv.contentEditable = 'true';
-    scrapingList.insertBefore(newDiv, scrapingList.lastElementChild?.nextSibling || null);
+    const li = document.createElement("li");
+    li.className = "selector-line";
+    li.appendChild(document.createTextNode(text));
+    li.contentEditable = "true";
+    scrapingList.insertBefore(li, scrapingList.lastElementChild?.nextSibling || null);
 }
 
 /**
@@ -217,7 +325,12 @@ function renderSelectorsFromPlan() {
     if (!scrapingList) return;
     const heading = document.getElementById("url_heading");
     scrapingList.innerHTML = "";
-    if (heading) scrapingList.appendChild(heading);
+    if (heading) {
+        const wrap = document.createElement("li");
+        wrap.className = "url-heading-wrap";
+        wrap.appendChild(heading);
+        scrapingList.appendChild(wrap);
+    }
 
     if (scrapePlan.site.searchInputSelector) {
         appendSelectorUiLine(
@@ -273,6 +386,7 @@ function normalizeStoredSelector(selector, fallbackKey) {
     };
 }
 
+// --- Rehydrate `scrapePlan` from a Mongo `scrapePlans` document (or nested `.plan`) ---
 /**
  * Applies a saved plan document to the current in-memory `scrapePlan`.
  *
@@ -305,6 +419,12 @@ function applyPlanData(rawPlan) {
         .filter(Boolean)
         .map((s) => ({ ...s, attr: s.attr || "src", multiple: s.multiple ?? true }));
 
+    scrapePlan.extraction.defaults = {
+        imageAttr: "src",
+        imageMultiple: true,
+        ...(p.extraction?.defaults || {}),
+    };
+
     scrapePlan.input = { ...scrapePlan.input, ...(p.input || {}) };
     scrapePlan.output = { ...scrapePlan.output, ...(p.output || {}) };
     scrapePlan.behavior = { ...scrapePlan.behavior, ...(p.behavior || {}) };
@@ -318,8 +438,12 @@ function applyPlanData(rawPlan) {
 
     syncLegacyArraysFromPlan();
     renderSelectorsFromPlan();
+    syncPlanSettingsFormFromPlan();
 }
 
+// =============================================================================
+// Saved plans — load from Mongo, apply selection into scrapePlan
+// =============================================================================
 /**
  * Loads plans from Mongo via IPC and refreshes the plan dropdown.
  *
@@ -372,6 +496,9 @@ function applySelectedPlan() {
     setPlanStatus(`Applied plan: ${doc.name || doc._id}`);
 }
 
+// =============================================================================
+// Spreadsheet ingestion — column A → codes[]
+// =============================================================================
 /**
  * Parses the first worksheet of an uploaded spreadsheet and extracts column A values
  * into the global `codes` array.
@@ -431,6 +558,9 @@ async function actOnXLSX(file) {
     console.log(codes);
 }
 
+// =============================================================================
+// Wizard screens — URL entry, sheet pick, webview handoff
+// =============================================================================
 /**
  * Triggers the hidden "change spreadsheet" file input.
  *
@@ -475,6 +605,8 @@ function changeSiteLink() {
  * Electron note:
  * - This uses IPC (`loadSearchPreview`) to coordinate UI state changes that are
  *   driven from the main process.
+ * - Sets the **guest** `<webview>` `src` to the target site; the guest loads in a
+ *   separate process and runs `preload.js` for context-menu selector capture.
  *
  * @returns {void}
  */
@@ -483,6 +615,7 @@ function loadScrapeSelectPage() {
     scrapePlan.site.baseUrl = link;
     document.getElementById("web_preview").setAttribute('src', link)
     ipcRenderer.send('loadSearchPreview', link);
+    syncPlanSettingsFormFromPlan();
 }
 
 /**
@@ -564,6 +697,9 @@ function scrapingPreview() {
     startScraping();
 }
 
+// =============================================================================
+// Mongo persistence — plan snapshots & run logs (ipcRenderer.invoke → main)
+// =============================================================================
 /**
  * Builds a stable default plan name from the current site and timestamp.
  *
@@ -585,8 +721,9 @@ function buildDefaultPlanName() {
  */
 async function savePlanSnapshot() {
     try {
+        const customName = planNameInput && planNameInput.value.trim();
         const response = await ipcRenderer.invoke('saveScrapePlan', {
-            name: buildDefaultPlanName(),
+            name: customName || buildDefaultPlanName(),
             plan: scrapePlan,
         });
         console.log("Saved scrape plan:", response?.insertedId || response);
@@ -638,7 +775,9 @@ function selectSheetPage() {
     document.getElementById("select_sheet").style.display = "flex";
 }
 
-
+// =============================================================================
+// IPC — main process → host renderer (selector prep, forwarded guest events)
+// =============================================================================
 /**
  * IPC: main process signals that the UI should reveal the selector-prep section.
  *
@@ -647,7 +786,10 @@ function selectSheetPage() {
  */
 ipcRenderer.on('loadWebview', () => {
     document.getElementById("select_sheet").style.display = "none";
-    document.getElementById("select_data").style.display = "inline";
+    // Use block (not inline) so `#select_data` establishes a proper containing block for
+    // absolutely positioned children (`webview`, quad-buttons). `inline` breaks layout.
+    document.getElementById("select_data").style.display = "block";
+    syncPlanSettingsFormFromPlan();
     refreshSavedPlans();
 })
 
@@ -679,6 +821,7 @@ ipcRenderer.on('searchXPath', (event, arg) => {
         selector.identifierType,
         selector.identifierValue
     );
+    syncPlanSettingsFormFromPlan();
 })
 
 /**
@@ -708,12 +851,12 @@ ipcRenderer.on('textXpathRenderer', (event, arg) => {
     textArray.push(selector.xpath || selector.identifierValue);
     addExtractionField("textFields", selector);
     console.log(textArray);
-    const newDiv = document.createElement("p")
-    const newContent = document.createTextNode(`${selector.identifierType}: ${selector.identifierValue}`)
-    newDiv.appendChild(newContent);
+    const li = document.createElement("li");
+    li.className = "selector-line";
+    li.appendChild(document.createTextNode(`${selector.identifierType}: ${selector.identifierValue}`));
     const currentDiv = document.getElementById("scraping_list");
-    newDiv.contentEditable = 'true'
-    currentDiv.insertBefore(newDiv, currentDiv.lastElementChild.nextSibling);
+    li.contentEditable = "true";
+    currentDiv.insertBefore(li, currentDiv.lastElementChild.nextSibling);
 
 })
 
@@ -730,12 +873,12 @@ ipcRenderer.on('imgXpathRenderer', (event, arg) => {
     imgArray.push(selector.xpath || selector.identifierValue);
     addExtractionField("imageFields", selector, { attr: selector.attr || "src" });
     console.log(imgArray);
-    const newDiv = document.createElement("p")
-    const newContent = document.createTextNode(`${selector.identifierType}: ${selector.identifierValue} (attr: ${selector.attr || "src"})`)
-    newDiv.appendChild(newContent);
+    const li = document.createElement("li");
+    li.className = "selector-line";
+    li.appendChild(document.createTextNode(`${selector.identifierType}: ${selector.identifierValue} (attr: ${selector.attr || "src"})`));
     const currentDiv = document.getElementById("scraping_list");
-    newDiv.contentEditable = 'true'
-    currentDiv.insertBefore(newDiv, currentDiv.lastElementChild.nextSibling);
+    li.contentEditable = "true";
+    currentDiv.insertBefore(li, currentDiv.lastElementChild.nextSibling);
 })
 
 /**
@@ -765,8 +908,9 @@ wbInput.addEventListener("change", () => {
     loadScrapeSelectPage()
 }, false);
 
-
-
+// =============================================================================
+// Selenium scrape engine — locator resolution, navigation, extraction, main loop
+// =============================================================================
 /**
  * Resolves a Selenium locator from a stored selector descriptor.
  *
@@ -895,6 +1039,7 @@ async function extractConfiguredFields(driver) {
  * @returns {Promise<void>}
  */
 async function startScraping() {
+    applyPlanSettingsFromForm();
     const driver = await new Builder().forBrowser(Browser.CHROME).build();
     /** @type {Array<Record<string, string | string[]>>} */
     const outputRows = [];
@@ -922,9 +1067,6 @@ async function startScraping() {
         await driver.quit();
     }
 
-    // Step 3 keeps output in-memory for now; persistence/export wiring comes next.
     await saveScrapeRun(outputRows, startedAt);
     console.log("Scraping completed. Rows:", outputRows.length);
 }
-
-
