@@ -1,73 +1,81 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>Scraping with Electron</title>
-    <link href='https://fonts.googleapis.com/css?family=Overpass' rel='stylesheet'>
+    <title>Select image</title>
+    <script src="../../js/theme-sync.js"></script>
+    <link rel="stylesheet" href="../../../node_modules/@picocss/pico/css/pico.min.css">
+    <link rel="stylesheet" href="../../css/theme-overrides.css">
     <link rel="stylesheet" href="../css/style.css">
 </head>
-<style>
 
-
-</style>
-
-<body>
-    <webview id='select_data' style="height: 100vh; opacity: 0.5;" preload="../js/img_preload.js" ​></webview>
-
-    <div id='white_content_box' class="white-box" style="top: 50%; opacity: 1; height:30vh;">
-        <div class="white-box-text">
-            <h1>Please click on the image element you wish to scrape</h1>
-        </div>
+<body class="flow-picker">
+    <div class="theme-floating" role="group" aria-label="Color scheme">
+        <span class="theme-floating__label">Theme</span>
+        <label><input type="radio" name="smartfox-theme" value="light"> Light</label>
+        <label><input type="radio" name="smartfox-theme" value="dark"> Dark</label>
     </div>
+    <main class="picker-shell">
+        <webview id="select_data" preload="../js/preload.js" nodeintegration></webview>
 
-    <div id='search_check' class="white-box-centered" style="display: none; z-index: 4;">
-        <h1 class='white-box-text' style="padding: 10px;">The Element you clicked was not a Image.</h1>
+        <article id="white_content_box" class="picker-banner contrast">
+            <header>
+                <h1>Image</h1>
+                <p>Right-click an image (or image link) and choose <strong>Select image (IMG or link)</strong>.</p>
+            </header>
+        </article>
 
-        <div class="white-box-two-buttons" style="height: 50%">
-            <button class='dual-buttons-input' onclick="clickBeforeSearch()">Yes</button>
-            <button class='dual-buttons-input' onclick="reClickSearch()">No</button>
+        <div id="search_check" class="picker-modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="img-check-title">
+            <article style="max-width: 36rem;">
+                <header id="img-check-title">
+                    <h2>Not an image?</h2>
+                    <p>That element is not an image or image link. Pick again or cancel.</p>
+                </header>
+                <div role="group">
+                    <button type="button" onclick="clickBeforeSearch()">Yes</button>
+                    <button type="button" class="secondary" onclick="reClickSearch()">No</button>
+                </div>
+            </article>
         </div>
-    </div>
+    </main>
 
-
+    <script src="../../js/theme.js"></script>
     <script>
-        const { ipcRenderer, webFrame, webContents, contextBridge } = require('electron')
-        const webview = document.querySelector('webview')
+        const { ipcRenderer } = require('electron');
+        const webview = document.querySelector('webview');
 
-
-        var search_temporary = 'placeholder'
+        let search_temporary = 'placeholder';
 
         function showAlert() {
-            document.getElementById('search_check').style.display = 'inline';
+            document.getElementById('search_check').style.display = 'flex';
             document.getElementById('white_content_box').style.display = 'none';
         }
 
         function hideAlert() {
             document.getElementById('search_check').style.display = 'none';
-            document.getElementById('white_content_box').style.display = 'flex';
+            document.getElementById('white_content_box').style.display = 'block';
         }
 
-        ipcRenderer.on('loadImgUrl', (event, arg) => {
+        ipcRenderer.on('loadImgUrl', (_event, arg) => {
             webview.setAttribute('src', arg);
             console.log(arg);
-        })
+        });
 
         function clickBeforeSearch() {
             hideAlert();
-            ipcRenderer.send('beforeSearch')
+            ipcRenderer.send('beforeSearch');
         }
 
         function reClickSearch() {
             hideAlert();
         }
 
-
-        ipcRenderer.on('wrong-search', (event, arg) => {
+        ipcRenderer.on('wrong-search', (_event, arg) => {
             showAlert();
-            search_temporary = arg
-        })
+            search_temporary = arg;
+        });
     </script>
 </body>
 

@@ -1,0 +1,79 @@
+/**
+ * Electron host shell — loaded after Pico on `index.html`.
+ * Tweak Pico variables; keep rules minimal so components stay “Pico-native”.
+ */
+@import url("https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700&display=swap");
+
+:root {
+  --pico-font-family: "Overpass", var(--pico-font-family-sans-serif);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+.landing {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--pico-spacing);
+}
+
+.landing__hero {
+  text-align: center;
+  margin-bottom: calc(var(--pico-spacing) * 2);
+}
+
+/* Card behind logo so transparent / dark PNG reads on any theme */
+.landing__brand {
+  display: inline-block;
+  padding: calc(var(--pico-spacing) * 1.25) calc(var(--pico-spacing) * 1.5);
+  margin-inline: auto;
+  margin-bottom: var(--pico-spacing);
+  border-radius: var(--pico-border-radius);
+  background: var(--pico-card-background-color);
+  border: var(--pico-border-width) solid var(--pico-muted-border-color);
+  box-shadow: var(--pico-card-box-shadow);
+}
+
+.landing__logo {
+  max-width: min(420px, 72vw);
+  height: auto;
+  margin-inline: auto;
+  display: block;
+}
+
+.landing__theme {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem 1rem;
+  margin-bottom: calc(var(--pico-spacing) * 1.25);
+  font-size: 0.875rem;
+}
+
+.landing__theme-label {
+  font-weight: 600;
+  margin: 0;
+}
+
+.landing__actions {
+  max-width: 42rem;
+  margin-inline: auto;
+  width: 100%;
+}
+
+.landing__actions [role="group"] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pico-spacing);
+  justify-content: center;
+}
+
+.landing__actions [role="group"] > * {
+  flex: 1 1 12rem;
+  min-width: 10rem;
+}

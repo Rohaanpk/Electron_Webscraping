@@ -1,607 +1,433 @@
-*{font-family:'Overpass';} 
-body{
-    background-color: #383131;
-    margin: 0;
-    overflow-x: hidden;
-    overflow-y: hidden;
+/**
+ * Electron + Pico — layout and webview rules only.
+ * Pico handles typography, forms, and buttons; keep overrides scoped and small.
+ */
+@import url("https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700&display=swap");
+
+:root {
+  --pico-font-family: "Overpass", var(--pico-font-family-sans-serif);
+  --app-shell-radius: 0.75rem;
 }
 
-input {
-    font-style: italic;
-    color: #707070;
-    text-align: center;
-    font-size: 8vh;
-    width: 90vw;
-    height: 12vh;
-    background-color: #ffffff;
-    margin:5vw auto 0px;
-    display: block;
+html {
+  height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
-
-
-.centered-text{
-    color: #FFFFFF;
-    text-align: center;
-    margin: 10vh auto 0px;
-    font-size: 1.83vw;
-    width: 50vw;
-    font-weight: bold;
-}
-
-.data-prep {
-    height: 70vh;
-    width: 70vw;
-    opacity: 0.8;
-    position: absolute;
-    right: 0;
-    margin: 5vh;
-}
-
-.dual-buttons-input {
-    width: 47%;
-    background-color: #D3D3D3;
-    height: 100%;
-    font-size: 6vh;
-    font-size: 3.03vw;
-    color: #707070;
-    z-index: 2;
-}
-
-.preview {
-    z-index: 0;
-    left: 0;
-    right: 0;
-    margin-left: auto;
-    margin-right: auto;
-    height: 100vh;
-    width: 100vw;
-    opacity: 0.5;
-    pointer-events: none;
-    user-select: none;
-    position: absolute;
-}
-
-.quad-buttons {
-    position: absolute;
-    width: 70vw;
-    height: auto;
-    display: flex;
-    justify-content: space-between;
-    bottom: 0;
-    right: 0;
-    margin: 0 2.8vw 5vh;   
-}
-
-.scraping-button {
-    position:absolute;
-    margin: 5% 5%;
-    align-content: center;
-    display: inline-flex;
-    align-items: center; 
-    background-color: #D3D3D3;
-    font-size: 3.5vw;
-    height: 20vh;
-    width: 90%;
-    color: #707070;
-    z-index: 0;
-    bottom: 0;
-}
-
-.scraping-list {
-    padding: 0;
-    list-style-type: none;
-    color: #707070;
-    
-}
-
-.scraping-preview {
-    height: 100vh;
-    width: 100vw;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-}
-
-.scraping-site-preview {
-    height: 80vh;
-    width: 70vw;
-    opacity: 0.8;
-    margin: 5vh;
-    background-color: red;
-}
-
-.select-sheet {
-    flex-direction: column;
-}
-
-.skinnier-buttons {
-    display: inline-flex;
-    align-items: center; 
-    background-color: #D3D3D3;
-    color: #707070;
-    width: 16vw;
-    height: 18vh;
-    text-align: center;
-    
-    font-size: 4.15vh;
-    font-size: 2.1vw;
-    z-index: 0;
-    text-align: center;
-}
-
-.two-buttons {
-    display: flex;
-    flex-direction: row;
-    height: 25vh;
-    margin: 1% auto;
-    justify-content: space-between;
-    width: 90vw;
-}
-
-.url-heading {
-    text-decoration: underline;
-    text-align: center;
-     margin: 5%; 
-    font-size: 2.5vh;
-    font-size: 1.26vw;
-    font-weight: bold;
-    width: 90%;
-    height: 2em;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow-y: hidden;
-}
-
-.url-heading::-webkit-scrollbar {
-    display: none;
-}
-
-.webpage-preview {
-    display: none;
-}
-
-.white-box {
-    height: 45vh;
-    width: 100vw;
-    background-color: white;
-    position: absolute; 
-    z-index: 1; 
-    display: flex;
-    flex-direction: column;
-    align-content: center;
-    justify-content: center;
-    border: #707070;
-    border-width: 2px;
-    border-style: solid;
-}
-
-.white-box-centered {
-    background-color: white;
-    height: 50vh;
-    width: 50vw;
-    position: absolute;
-    top: 25%;
-    left: 25%;
-    border: #707070;
-    border-width: 2px;
-    border-style: solid;
-}
-
-.white-box-left {
-    background-color: #ffffff;
-    z-index: -1;
-    height: 90vh;
-    margin: 5vh 5vh;
-    width: 22vw;
-    position: absolute
-}
-
-.white-box-text {
-    text-align: center;
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    margin: 1% 0px;
-    color: #707070;
-    font-size: 2.02vw;
-    font-weight: bold;
-    height: 30%;
-}
-
-.white-box-two-buttons {
-    display: flex;
-    flex-direction: row;
-    width: 90%;
-    flex: 1;
-    margin: 1% auto;
-    justify-content: space-between;
-    z-index: 2;
-    
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* -------------------------------------------------------------------------- */
-/* Selector prep layout — scoped overrides (global `input` rules are 90vw)   */
+/* New project wizard                                                       */
 /* -------------------------------------------------------------------------- */
+
+.wizard-step {
+  box-sizing: border-box;
+}
+
+.wizard-step--fill {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--pico-block-spacing-vertical) var(--pico-block-spacing-horizontal);
+}
+
+.wizard-card {
+  width: min(40rem, 100%);
+}
+
+.wizard-card header {
+  margin-bottom: var(--pico-typography-spacing-vertical);
+}
+
+.wizard-actions {
+  margin-top: var(--pico-spacing);
+}
+
+.preview-stage {
+  position: relative;
+  display: none;
+  flex-direction: column;
+  height: 100vh;
+  min-height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+}
+
+/* Electron `<webview>` needs a flex parent with real height — bare flex on webview is unreliable. */
+.webview-flex-fill {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  position: relative;
+}
+
+.webview-flex-fill > webview {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  min-width: 0;
+  height: 100%;
+  align-self: stretch;
+  border: none;
+}
+
+.preview-stage .webview-flex-fill > webview.preview-backdrop {
+  opacity: 0.5;
+  pointer-events: none;
+  user-select: none;
+}
+
+.preview-bottom-sheet {
+  flex-shrink: 0;
+  margin: 0;
+  border-radius: var(--app-shell-radius) var(--app-shell-radius) 0 0;
+  box-shadow: 0 -0.5rem 2rem rgba(0, 0, 0, 0.25);
+}
+
+.preview-bottom-sheet header {
+  text-align: center;
+}
+
+.sheet-choice {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--pico-spacing);
+  text-align: center;
+}
+
+.sheet-choice header {
+  max-width: 36rem;
+}
+
+.sheet-choice [role="group"] {
+  margin-top: calc(var(--pico-spacing) * 1.5);
+  width: min(40rem, 100%);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Selector prep — `#select_data` is the flex host for sidebar + webview     */
+/* -------------------------------------------------------------------------- */
+
+#select_data {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  max-height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: clamp(0.65rem, 1.2vw, 1.1rem);
+  padding: clamp(0.5rem, 1.5vh, 1rem) clamp(0.65rem, 1.5vw, 1.1rem);
+  overflow: hidden;
+}
 
 /*
- * Selector prep shell: flex row so the guest `<webview>` can use `flex: 1` and fill
- * all remaining width *and* height beside the fixed-width sidebar.
+ * Guest column: CSS Grid gives row 1 a real fractional height (1fr). Flex-only columns
+ * often collapse for Electron `<webview>`; grid + absolute fill is reliable.
  */
-#select_data {
-    position: relative;
-    width: 100vw;
-    height: 100vh;
-    min-height: 100vh;
-    max-height: 100vh;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    gap: clamp(0.65rem, 1.2vw, 1.1rem);
-    padding: clamp(0.5rem, 1.5vh, 1rem) clamp(0.65rem, 1.5vw, 1.1rem);
-    overflow: hidden;
-}
-
-/* Right-hand column: stack webview (flex-grow) + bottom toolbar */
 #select_data .select-data-main {
-    flex: 1 1 auto;
-    min-width: 0;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+  flex: 1 1 0%;
+  min-width: 0;
+  min-height: 0;
+  align-self: stretch;
+  /* Fill sidebar row so grid `1fr` has real height (not content-sized to webview’s 150px default). */
+  height: 100%;
+  max-height: 100%;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  overflow: hidden;
 }
 
-.selector-sidebar.white-box-left {
-    position: relative;
-    left: auto;
-    top: auto;
-    flex: 0 0 min(22rem, 34vw);
-    width: min(22rem, 34vw);
-    max-width: min(22rem, 34vw);
-    height: auto;
-    align-self: stretch;
-    margin: 0;
-    z-index: 4;
-    display: flex;
-    flex-direction: column;
-    background: linear-gradient(165deg, #fafafa 0%, #f2f0f0 55%, #ebe8e8 100%);
-    border-radius: 14px;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    box-shadow:
-        0 12px 40px rgba(0, 0, 0, 0.14),
-        inset 0 1px 0 rgba(255, 255, 255, 0.75);
-    overflow: hidden;
+#select_data .select-data-webview-host {
+  grid-row: 1;
+  grid-column: 1;
+  min-width: 0;
+  /* Block webview’s intrinsic 150px from shrinking the row; fill the `1fr` track. */
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
+  width: 100%;
+  align-self: stretch;
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--app-shell-radius);
+  box-shadow: var(--pico-card-box-shadow);
+  border: var(--pico-border-width) solid var(--pico-muted-border-color);
+}
+
+/*
+ * Guest `<webview>` internal iframe defaults to 150×300 if the tag box is ambiguous.
+ * `new_project.js` applies px from the host; keep child from dictating host min-height.
+ */
+#select_data .select-data-webview-host > webview.data-prep {
+  display: block;
+  box-sizing: border-box;
+  margin: 0;
+  border: none;
+  min-width: 0;
+  min-height: 0;
+}
+
+.selector-sidebar {
+  flex: 0 0 min(22rem, 34vw);
+  width: min(22rem, 34vw);
+  max-width: min(22rem, 34vw);
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--app-shell-radius);
 }
 
 .selector-sidebar__scroll {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 0.75rem 0.9rem 0.5rem;
-    -webkit-overflow-scrolling: touch;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--pico-spacing);
+  -webkit-overflow-scrolling: touch;
 }
 
 .selector-sidebar__scroll::-webkit-scrollbar {
-    width: 8px;
+  width: 8px;
 }
 
 .selector-sidebar__scroll::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.18);
-    border-radius: 8px;
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 8px;
 }
 
 .selector-sidebar__footer {
-    flex: 0 0 auto;
-    padding: 0.65rem 0.9rem 0.85rem;
-    border-top: 1px solid rgba(0, 0, 0, 0.07);
-    background: rgba(255, 255, 255, 0.55);
-    backdrop-filter: blur(6px);
+  flex: 0 0 auto;
+  padding: var(--pico-spacing);
+  border-top: var(--pico-border-width) solid var(--pico-muted-border-color);
+  background: var(--pico-card-background-color);
 }
 
 .scraping-list--sidebar {
-    margin: 0 0 0.75rem;
-    padding: 0 0 0.65rem;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    list-style: none;
+  margin: 0 0 var(--pico-spacing);
+  padding: 0 0 var(--pico-spacing);
+  border-bottom: var(--pico-border-width) solid var(--pico-muted-border-color);
+  list-style: none;
 }
 
 .scraping-list--sidebar .selector-line {
-    list-style: none;
-    margin: 0.2rem 0 0;
-    padding: 0.35rem 0.45rem;
-    font-size: 0.72rem;
-    line-height: 1.35;
-    color: #4d4d4d;
-    background: rgba(255, 255, 255, 0.65);
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    border-radius: 6px;
-    word-break: break-word;
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding: 0.45rem 0.55rem;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--pico-color);
+  background: var(--pico-card-background-color);
+  border: var(--pico-border-width) solid var(--pico-muted-border-color);
+  border-radius: var(--pico-border-radius);
+  word-break: break-word;
 }
 
 .url-heading-wrap {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .url-heading--sidebar {
-    width: 100%;
-    height: auto;
-    min-height: 0;
-    margin: 0;
-    padding: 0.35rem 0;
-    font-size: 0.78rem;
-    font-weight: 600;
-    text-align: left;
-    text-decoration: none;
-    color: #4a4a4a;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  margin: 0;
+  padding: 0.35rem 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: left;
+  color: var(--pico-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .config-panel {
-    margin-bottom: 0.85rem;
-    padding: 0.75rem 0.8rem;
-    background: rgba(255, 255, 255, 0.72);
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    border-radius: 10px;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+  margin-bottom: var(--pico-spacing);
 }
 
-.config-panel__title {
-    margin: 0 0 0.2rem;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: #6a6363;
+.config-panel > hgroup,
+.config-panel > h3 {
+  margin-bottom: var(--pico-spacing);
 }
 
-.config-panel__hint {
-    margin: 0 0 0.75rem;
-    font-size: 0.72rem;
-    line-height: 1.35;
-    color: #7a7373;
-}
-
-.form-field {
-    margin-bottom: 0.65rem;
-}
-
-.form-field--checkbox {
-    display: flex;
-    align-items: center;
-}
-
-.form-field--align-end {
-    align-items: flex-end;
-    padding-bottom: 0.15rem;
-}
-
-.form-label {
-    display: block;
-    margin-bottom: 0.28rem;
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: #5a5353;
-}
-
-.form-label__optional {
-    font-weight: 500;
-    color: #8a8383;
-}
-
-.form-hint {
-    display: block;
-    margin-top: 0.3rem;
-    font-size: 0.68rem;
-    color: #8a8383;
-}
-
-.form-hint code {
-    font-size: 0.68rem;
-    padding: 0.05rem 0.25rem;
-    border-radius: 4px;
-    background: rgba(0, 0, 0, 0.05);
-}
-
-.form-check {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.45rem;
-    font-size: 0.72rem;
-    line-height: 1.35;
-    color: #5a5353;
-    cursor: pointer;
-}
-
-.form-check input {
-    margin-top: 0.15rem;
-    flex-shrink: 0;
-}
-
-.form-grid {
-    display: grid;
-    gap: 0.5rem;
-}
-
-.form-grid--2 {
-    grid-template-columns: 1fr 1fr;
-}
-
-.form-grid--3 {
-    grid-template-columns: 1fr 1fr 1fr;
-}
-
-@media (max-width: 1100px) {
-    .form-grid--3 {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
-/* Scoped form controls — undo global 90vw / 12vh input styling */
-#select_data .form-control,
-#select_data .form-control--select,
-#select_data .form-control--textarea {
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    margin: 0;
-    height: auto;
-    min-height: 2.25rem;
-    padding: 0.45rem 0.6rem;
-    font-size: 0.8125rem;
-    font-style: normal;
-    text-align: left;
-    color: #3a3a3a;
-    background: #fff;
-    border: 1px solid rgba(0, 0, 0, 0.12);
-    border-radius: 8px;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-#select_data .form-control:focus,
-#select_data .form-control--select:focus,
-#select_data .form-control--textarea:focus {
-    outline: none;
-    border-color: rgba(90, 70, 120, 0.45);
-    box-shadow: 0 0 0 3px rgba(90, 70, 120, 0.12);
-}
-
-#select_data .form-control--textarea {
-    resize: vertical;
-    min-height: 3.25rem;
-    line-height: 1.35;
-}
-
-#select_data .form-control--select {
-    cursor: pointer;
-    appearance: none;
-    background-image: linear-gradient(45deg, transparent 50%, #666 50%),
-        linear-gradient(135deg, #666 50%, transparent 50%);
-    background-position: calc(100% - 1rem) 55%, calc(100% - 0.65rem) 55%;
-    background-size: 6px 6px, 6px 6px;
-    background-repeat: no-repeat;
-    padding-right: 1.75rem;
-}
-
-.button-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.45rem;
-    margin-top: 0.35rem;
-}
-
-#select_data .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.35rem;
-    min-height: 2.25rem;
-    padding: 0.45rem 0.75rem;
-    margin: 0;
-    border: none;
-    border-radius: 8px;
-    font-family: inherit;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    cursor: pointer;
-    transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
-}
-
-#select_data .btn:active {
-    transform: translateY(1px);
-}
-
-#select_data .btn--primary {
-    color: #fff;
-    background: linear-gradient(135deg, #5c3d7a 0%, #4a3263 100%);
-    box-shadow: 0 4px 14px rgba(74, 50, 99, 0.35);
-}
-
-#select_data .btn--primary:hover {
-    box-shadow: 0 6px 18px rgba(74, 50, 99, 0.42);
-}
-
-#select_data .btn--secondary {
-    color: #4a4545;
-    background: #e8e4e4;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-#select_data .btn--secondary:hover {
-    background: #ded9d9;
-}
-
-#select_data .btn--ghost {
-    color: #5c3d7a;
-    background: transparent;
-    border: 1px solid rgba(92, 61, 122, 0.35);
-}
-
-#select_data .btn--ghost:hover {
-    background: rgba(92, 61, 122, 0.06);
-}
-
-#select_data .btn--block {
-    width: 100%;
+.config-panel > h3 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--pico-muted-color);
 }
 
 .plan-status {
-    margin: 0.5rem 0 0;
-    font-size: 0.7rem;
-    line-height: 1.35;
-    color: #6a6363;
-    word-break: break-word;
-}
-
-/*
- * Guest `<webview>`: fill the `.select-data-main` column. `flex: 1` + `min-height: 0`
- * lets the guest surface receive a real computed height (required for reliable paint).
- */
-#select_data .data-prep {
-    /* `block` + flex growth: `<webview>` is not a normal flex container */
-    display: block;
-    flex: 1 1 0;
-    min-width: 0;
-    min-height: 0;
-    width: 100%;
-    margin: 0;
-    position: relative;
-    left: auto;
-    top: auto;
-    z-index: 3;
-    opacity: 1;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+  margin: var(--pico-spacing) 0 0;
+  font-size: 0.8125rem;
+  color: var(--pico-muted-color);
+  word-break: break-word;
 }
 
 #select_data .quad-buttons {
-    position: relative;
-    flex: 0 0 auto;
-    left: auto;
-    right: auto;
-    width: 100%;
-    margin: 0.55rem 0 0;
-    padding: 0;
-    justify-content: flex-end;
-    gap: 0.75rem;
+  grid-row: 2;
+  grid-column: 1;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--pico-spacing);
+  margin: 0;
 }
 
-#select_data .skinnier-buttons {
-    width: auto;
-    min-width: 10rem;
-    max-width: 22rem;
-    height: auto;
-    min-height: 2.75rem;
-    padding: 0.5rem 1rem;
-    font-size: 0.75rem;
-    border-radius: 8px;
+/* -------------------------------------------------------------------------- */
+/* Scraping run (pause + iframe preview)                                     */
+/* -------------------------------------------------------------------------- */
+
+.scraping-run {
+  display: none;
+  flex-direction: row;
+  align-items: stretch;
+  min-height: 100vh;
+  gap: var(--pico-spacing);
+  padding: var(--pico-spacing);
+  box-sizing: border-box;
+}
+
+.scraping-run__aside {
+  flex: 0 0 min(16rem, 28vw);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.scraping-run__main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scraping-run__main iframe {
+  width: min(100%, 56rem);
+  height: min(80vh, 40rem);
+  border: var(--pico-border-width) solid var(--pico-muted-border-color);
+  border-radius: var(--app-shell-radius);
+  background: var(--pico-card-background-color);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Legacy / child-window picker pages (`select_*.html`)                     */
+/* -------------------------------------------------------------------------- */
+
+body.flow-picker {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.picker-shell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+}
+
+.picker-shell webview,
+.picker-frame webview {
+  display: block;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  border: none;
+  opacity: 0.55;
+}
+
+.picker-frame {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.picker-banner {
+  flex-shrink: 0;
+  margin: 0;
+  border-radius: 0;
+}
+
+.picker-banner header {
+  text-align: center;
+  padding: var(--pico-spacing);
+}
+
+.picker-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: var(--pico-spacing);
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+}
+
+.picker-modal header {
+  text-align: center;
+}
+
+.picker-modal [role="group"] {
+  margin-top: var(--pico-spacing);
+}
+
+.picker-modal > article {
+  background: var(--pico-card-background-color);
+  border-radius: var(--pico-border-radius);
+  padding: var(--pico-spacing);
+  box-shadow: var(--pico-card-box-shadow);
+  border: var(--pico-border-width) solid var(--pico-muted-border-color);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Theme control (fixed)                                                      */
+/* -------------------------------------------------------------------------- */
+
+.theme-floating {
+  position: fixed;
+  top: 0.45rem;
+  right: 0.45rem;
+  z-index: 10000;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8125rem;
+  border-radius: var(--pico-border-radius);
+  background: var(--pico-card-background-color);
+  border: var(--pico-border-width) solid var(--pico-muted-border-color);
+  box-shadow: var(--pico-box-shadow);
+}
+
+.theme-floating__label {
+  font-weight: 600;
+  margin: 0;
 }

@@ -1,188 +1,179 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>Scraping with Electron</title>
-    <script scr='../../jquery.js'></script>
-    <link href='https://fonts.googleapis.com/css?family=Overpass' rel='stylesheet'>
+    <title>New project — Smartfox Webscraper</title>
+    <script src="../../js/theme-sync.js"></script>
+    <link rel="stylesheet" href="../../../node_modules/@picocss/pico/css/pico.min.css">
+    <link rel="stylesheet" href="../../css/theme-overrides.css">
     <link rel="stylesheet" href="../css/style.css">
 </head>
 
 <body>
-    <div id="new_project" style="height: auto; display: inline;">
-        <div class="centered-text">
-            <h1>Enter the site link in the input box below</h1>
-        </div>
-
-        <div class='input-url'>
-            <input id="input_url" type="url" placeholder="www.example.com" pattern="https://.*" required>
-        </div>
-
-        <div class='two-buttons' style="margin: 10vh">
-            <button class='dual-buttons-input' onclick="previewSite()">Create Project with this link</button>
-            <button class='dual-buttons-input' onclick="mainPage()">Go back to the main page</button>
-        </div>
+    <div class="theme-floating" role="group" aria-label="Color scheme">
+        <span class="theme-floating__label">Theme</span>
+        <label><input type="radio" name="smartfox-theme" value="light"> Light</label>
+        <label><input type="radio" name="smartfox-theme" value="dark"> Dark</label>
     </div>
+    <!-- Step 1: URL entry -->
+    <main id="new_project" class="wizard-step wizard-step--fill">
+        <article class="wizard-card">
+            <header>
+                <h1>New scrape project</h1>
+                <p>Enter the site URL you want to scrape. Use a full address including <code>https://</code>.</p>
+            </header>
+            <form id="url_entry_form" onsubmit="event.preventDefault(); previewSite();">
+                <label for="input_url">Site URL</label>
+                <input id="input_url" name="url" type="url" placeholder="https://www.example.com" required>
+                <div role="group" class="wizard-actions">
+                    <button type="submit">Preview site</button>
+                    <button type="button" class="secondary" onclick="mainPage()">Back to home</button>
+                </div>
+            </form>
+        </article>
+    </main>
 
-    <div class="webpage-preview" id="site_preview">
-        <webview class="preview" id="preview"></webview>
-
-        <div class="white-box" style="top: 50%">
-            <div class="white-box-text">
-                <h1>IS THIS THE SITE YOU WISH TO SCRAPE FROM?</h1>
+    <!-- Step 2: Confirm preview -->
+    <div class="wizard-step preview-stage" id="site_preview" style="display: none;" aria-hidden="true">
+        <div class="webview-flex-fill">
+            <webview id="preview" class="preview-backdrop"></webview>
+        </div>
+        <article class="preview-bottom-sheet contrast">
+            <header>
+                <h2>Is this the site you want to scrape?</h2>
+                <p>Confirm the page looks correct before continuing.</p>
+            </header>
+            <div role="group">
+                <button type="button" onclick="selectSheetPage()">Yes, continue</button>
+                <button type="button" class="secondary" onclick="changeSiteLink()">Use a different URL</button>
             </div>
-
-            <div class="white-box-two-buttons">
-                <button class='dual-buttons-input' onclick="selectSheetPage()">Use this webpage</button>
-                <button class='dual-buttons-input' onclick="changeSiteLink()">Use different website Link</button>
-            </div>
-        </div>
+        </article>
     </div>
 
-    <div id="select_sheet" class="select-sheet" style="display: none;">
-        <div class="centered-text">
-            <h1>Would you like to prepare a site without an excel file or select the file now?</h1>
+    <!-- Step 3: Spreadsheet timing -->
+    <section id="select_sheet" class="sheet-choice" style="display: none;" aria-labelledby="sheet-choice-title">
+        <header>
+            <h2 id="sheet-choice-title">Spreadsheet</h2>
+            <p>Attach a spreadsheet now, or skip and bind columns later.</p>
+        </header>
+        <div role="group">
+            <button type="button" class="secondary" onclick="loadScrapeSelectPage()">Select later</button>
+            <button type="button" onclick="selectSheet()">Choose file now</button>
+            <input id="file_input" type="file" name="name" hidden accept=".csv,.xlsx">
         </div>
+    </section>
 
-        <div class='two-buttons' style="margin: 15vh auto;">
-            <button class='dual-buttons-input' onclick="loadScrapeSelectPage()">Select Later</button>
-
-            <button class='dual-buttons-input' onclick="selectSheet()">Select Now</button>
-            <input id="file_input" type="file" name="name" style="display: none;" accept=".csv,.xlsx" />
-        </div>
-    </div>
-
-    <!-- Selector prep: left sidebar (host UI) + right guest webview (`web_preview`). Layout/CSS in `css/style.css` (#select_data). -->
-    <div style="display:none;" id="select_data">
-        <aside class="white-box-left selector-sidebar" aria-label="Scrape configuration">
+    <!-- Selector prep: sidebar + `.select-data-webview-host` + `web_preview`. Layout: `../css/style.css`. -->
+    <div id="select_data" style="display:none;">
+        <aside class="selector-sidebar" aria-label="Scrape configuration">
             <div class="selector-sidebar__scroll">
                 <ul class="scraping-list scraping-list--sidebar" id="scraping_list">
                     <li class="url-heading-wrap">
-                        <h1 class='url-heading url-heading--sidebar' id="url_heading"></h1>
+                        <p class="url-heading url-heading--sidebar" id="url_heading"></p>
                     </li>
                 </ul>
 
-                <section class="config-panel">
-                    <h2 class="config-panel__title">Plan settings</h2>
-                    <p class="config-panel__hint">Configure how each spreadsheet row is opened before extraction.</p>
+                <article class="config-panel">
+                    <h3>Plan settings</h3>
+                    <p><small>Configure how each spreadsheet row is opened before extraction.</small></p>
 
-                    <div class="form-field">
-                        <label class="form-label" for="plan_name_input">Plan name <span class="form-label__optional">(optional)</span></label>
-                        <input id="plan_name_input" class="form-control" type="text" placeholder="e.g. blackwoods_catalog" autocomplete="off">
-                    </div>
+                    <label for="plan_name_input">Plan name <small>(optional)</small></label>
+                    <input id="plan_name_input" type="text" placeholder="e.g. blackwoods_catalog" autocomplete="off">
 
-                    <div class="form-field">
-                        <label class="form-label" for="plan_start_mode">Start mode</label>
-                        <select id="plan_start_mode" class="form-control form-control--select">
-                            <option value="searchInput">Search input — type SKU in the field</option>
-                            <option value="generatedSearchUrl">Generated URL — build URL from template</option>
-                            <option value="directLink">Direct link — each row value is a full URL</option>
-                        </select>
-                    </div>
+                    <label for="plan_start_mode">Start mode</label>
+                    <select id="plan_start_mode">
+                        <option value="searchInput">Search input — type SKU in the field</option>
+                        <option value="generatedSearchUrl">Generated URL — build URL from template</option>
+                        <option value="directLink">Direct link — each row value is a full URL</option>
+                    </select>
 
-                    <div class="form-field">
-                        <label class="form-label" for="plan_url_template">URL template</label>
-                        <textarea id="plan_url_template" class="form-control form-control--textarea" rows="2" placeholder="{baseUrl}/search?q={sku}"></textarea>
-                        <span class="form-hint">Placeholders: <code>{sku}</code>, <code>{baseUrl}</code></span>
-                    </div>
+                    <label for="plan_url_template">URL template</label>
+                    <textarea id="plan_url_template" rows="2" placeholder="{baseUrl}/search?q={sku}"></textarea>
+                    <small>Placeholders: <code>{sku}</code>, <code>{baseUrl}</code></small>
 
-                    <div class="form-grid form-grid--2">
-                        <div class="form-field">
-                            <label class="form-label" for="plan_img_attr_default">Image attribute</label>
-                            <select id="plan_img_attr_default" class="form-control form-control--select">
+                    <div class="grid" style="margin-top: var(--pico-spacing);">
+                        <label for="plan_img_attr_default">Image attribute
+                            <select id="plan_img_attr_default">
                                 <option value="src">src</option>
                                 <option value="href">href</option>
                             </select>
-                        </div>
-                        <div class="form-field form-field--checkbox">
-                            <label class="form-check">
-                                <input id="plan_img_multiple_default" type="checkbox" checked>
-                                <span>Match multiple images for new picks</span>
-                            </label>
-                        </div>
+                        </label>
+                        <label>
+                            <input id="plan_img_multiple_default" type="checkbox" checked>
+                            Match multiple images for new picks
+                        </label>
                     </div>
 
-                    <div class="form-grid form-grid--3">
-                        <div class="form-field">
-                            <label class="form-label" for="plan_wait_ms">Wait (ms)</label>
-                            <input id="plan_wait_ms" class="form-control" type="number" min="0" step="1000" value="20000">
-                        </div>
-                        <div class="form-field">
-                            <label class="form-label" for="plan_retry_count">Retries</label>
-                            <input id="plan_retry_count" class="form-control" type="number" min="0" step="1" value="2">
-                        </div>
-                        <div class="form-field form-field--checkbox form-field--align-end">
-                            <label class="form-check">
-                                <input id="plan_continue_on_error" type="checkbox" checked>
-                                <span>Continue on row error</span>
-                            </label>
-                        </div>
+                    <div class="grid" style="margin-top: var(--pico-spacing);">
+                        <label for="plan_wait_ms">Wait (ms)
+                            <input id="plan_wait_ms" type="number" min="0" step="1000" value="20000">
+                        </label>
+                        <label for="plan_retry_count">Retries
+                            <input id="plan_retry_count" type="number" min="0" step="1" value="2">
+                        </label>
+                        <label>
+                            <input id="plan_continue_on_error" type="checkbox" checked>
+                            Continue on row error
+                        </label>
                     </div>
 
-                    <div class="form-field">
-                        <span class="form-label">Spreadsheet columns</span>
-                        <div class="form-grid form-grid--2">
-                            <input id="plan_col_sku" class="form-control" type="text" placeholder="SKU column name" aria-label="SKU column name">
-                            <input id="plan_col_link" class="form-control" type="text" placeholder="Link column name" aria-label="Link column name">
-                        </div>
+                    <label>Spreadsheet columns</label>
+                    <div class="grid">
+                        <input id="plan_col_sku" type="text" placeholder="SKU column name" aria-label="SKU column name">
+                        <input id="plan_col_link" type="text" placeholder="Link column name" aria-label="Link column name">
                     </div>
 
-                    <div class="form-field">
-                        <label class="form-label" for="plan_output_path">Output path</label>
-                        <input id="plan_output_path" class="form-control" type="text" placeholder="./Output.xlsx">
-                    </div>
+                    <label for="plan_output_path">Output path</label>
+                    <input id="plan_output_path" type="text" placeholder="./Output.xlsx">
 
-                    <div class="button-row">
-                        <button type="button" class="btn btn--secondary" onclick="applyPlanSettingsFromForm()">Apply settings</button>
-                        <button type="button" class="btn btn--ghost" onclick="savePlanToMongo()">Save plan</button>
+                    <div role="group" style="margin-top: var(--pico-spacing);">
+                        <button type="button" class="secondary" onclick="applyPlanSettingsFromForm()">Apply settings</button>
+                        <button type="button" class="outline" onclick="savePlanToMongo()">Save plan</button>
                     </div>
-                </section>
+                </article>
 
-                <section class="config-panel">
-                    <h2 class="config-panel__title">Saved plans</h2>
-                    <div class="form-field">
-                        <label class="form-label" for="saved_plans_select">Library</label>
-                        <select id="saved_plans_select" class="form-control form-control--select">
-                            <option value="">No plans loaded</option>
-                        </select>
-                    </div>
-                    <div class="button-row">
-                        <button type="button" class="btn btn--secondary" onclick="refreshSavedPlans()">Refresh</button>
-                        <button type="button" class="btn btn--secondary" onclick="applySelectedPlan()">Load selection</button>
+                <article class="config-panel">
+                    <h3>Saved plans</h3>
+                    <label for="saved_plans_select">Library</label>
+                    <select id="saved_plans_select">
+                        <option value="">No plans loaded</option>
+                    </select>
+                    <div role="group" style="margin-top: var(--pico-spacing);">
+                        <button type="button" class="secondary" onclick="refreshSavedPlans()">Refresh</button>
+                        <button type="button" class="secondary" onclick="applySelectedPlan()">Load selection</button>
                     </div>
                     <p id="plan_status" class="plan-status" role="status"></p>
-                </section>
+                </article>
             </div>
 
             <footer class="selector-sidebar__footer">
-                <button type="button" class="btn btn--primary btn--block" onclick="scrapingPreview()">Start scraping</button>
+                <button type="button" onclick="scrapingPreview()">Start scraping</button>
             </footer>
         </aside>
 
-        <!-- Main column: webview grows to fill remaining viewport; toolbar stays below. -->
         <div class="select-data-main">
-            <!-- Guest site: separate process; `preload.js` handles context-menu selector capture. -->
-            <webview id="web_preview" class="data-prep" preload="../js/preload.js" nodeintegration></webview>
-
+            <div class="select-data-webview-host">
+                <webview id="web_preview" class="data-prep" preload="../js/preload.js" nodeintegration></webview>
+            </div>
             <div class="quad-buttons">
-                <button class="skinnier-buttons" type="button" onclick="changeSheet()">CHANGE SPREADSHEET</button>
-                <input id="file_change" type="file" name="name" style="display: none;" accept=".csv,.xlsx" />
+                <button type="button" class="secondary" onclick="changeSheet()">Change spreadsheet</button>
+                <input id="file_change" type="file" name="name" hidden accept=".csv,.xlsx">
             </div>
         </div>
     </div>
 
-    <div id="scraping_preview" style="display: none;">
-        <div class="white-box-left">
-            <button class="scraping-button">PAUSE SCRAPING</button>
+    <div id="scraping_preview" class="scraping-run" style="display: none;" aria-live="polite">
+        <aside class="scraping-run__aside">
+            <button type="button" class="secondary">Pause scraping</button>
+        </aside>
+        <div class="scraping-run__main">
+            <iframe title="Scrape preview" src="about:blank"></iframe>
         </div>
-
-        <div class="scraping-preview">
-            <iframe class="scraping-site-preview"></iframe>
-        </div>
-
     </div>
+
+    <script src="../../js/theme.js"></script>
     <script src="../js/new_project.js"></script>
 </body>
 

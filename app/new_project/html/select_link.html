@@ -1,37 +1,42 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>Scraping with Electron</title>
-    <link href='https://fonts.googleapis.com/css?family=Overpass' rel='stylesheet'>
+    <title>Select product link</title>
+    <script src="../../js/theme-sync.js"></script>
+    <link rel="stylesheet" href="../../../node_modules/@picocss/pico/css/pico.min.css">
+    <link rel="stylesheet" href="../../css/theme-overrides.css">
     <link rel="stylesheet" href="../css/style.css">
 </head>
-<style>
 
-
-</style>
-
-<body>
-    <webview id='select_data' style="height: 100vh; opacity: 0.5;" preload="../js/link_preload.js" ​></webview>
-
-    <div id='white_content_box' class="white-box" style="top: 50%; opacity: 1; height:30vh;">
-        <div class="white-box-text">
-            <h1>Please click on a product link element</h1>
-        </div>
+<body class="flow-picker">
+    <div class="theme-floating" role="group" aria-label="Color scheme">
+        <span class="theme-floating__label">Theme</span>
+        <label><input type="radio" name="smartfox-theme" value="light"> Light</label>
+        <label><input type="radio" name="smartfox-theme" value="dark"> Dark</label>
     </div>
+    <main class="picker-shell">
+        <webview id="select_data" preload="../js/preload.js" nodeintegration></webview>
 
+        <article id="white_content_box" class="picker-banner contrast">
+            <header>
+                <h1>Product link</h1>
+                <p>Right-click a product or listing link and choose <strong>Select product link</strong>.</p>
+            </header>
+        </article>
+    </main>
 
+    <script src="../../js/theme.js"></script>
     <script>
-        const { ipcRenderer, webFrame, webContents, contextBridge } = require('electron')
-        const webview = document.querySelector('webview')
+        const { ipcRenderer } = require('electron');
+        const webview = document.querySelector('webview');
 
-        ipcRenderer.on('loadLinkUrl', (event, arg) => {
+        ipcRenderer.on('loadLinkUrl', (_event, arg) => {
             webview.setAttribute('src', arg);
             console.log(arg);
-        })
-
+        });
     </script>
 </body>
 

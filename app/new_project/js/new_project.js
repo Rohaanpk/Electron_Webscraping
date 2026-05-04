@@ -30,6 +30,83 @@ var before_product = []
 var codes = []
 var link = ""
 const webPreview = document.getElementById("web_preview");
+/** @type {ResizeObserver | null} */
+let guestWebviewResizeObserver = null;
+
+/**
+ * Returns the layout box that should define guest `<webview>` bounds.
+ *
+ * @returns {HTMLElement | null}
+ */
+function getGuestWebviewHost() {
+    return document.querySelector("#select_data .select-data-webview-host");
+}
+
+/**
+ * Electron `<webview>` often ignores percentage/flex sizing for the embedded page.
+ * Copy the host element's border box to explicit pixel width/height on the tag.
+ *
+ * @returns {void}
+ */
+function syncGuestWebviewBounds() {
+    const host = getGuestWebviewHost();
+    if (!host || !webPreview) return;
+    /* Prefer layout box from border-box; fall back to clientWidth/Height for sub-pixel stability */
+    const r = host.getBoundingClientRect();
+    let w = Math.max(1, Math.round(r.width));
+    let h = Math.max(1, Math.round(r.height));
+    if (h <= 2 || w <= 2) {
+        w = Math.max(w, host.clientWidth || 1);
+        h = Math.max(h, host.clientHeight || 1);
+    }
+    webPreview.style.boxSizing = "border-box";
+    webPreview.style.display = "block";
+    webPreview.style.width = `${w}px`;
+    webPreview.style.height = `${h}px`;
+}
+
+/**
+ * Subscribes to host size changes so the guest webview stays flush with `.select-data-webview-host`.
+ *
+ * @returns {void}
+ */
+function attachGuestWebviewResizeObserver() {
+    const host = getGuestWebviewHost();
+    if (!host || guestWebviewResizeObserver || typeof ResizeObserver === "undefined") return;
+    guestWebviewResizeObserver = new ResizeObserver(() => {
+        syncGuestWebviewBounds();
+    });
+    guestWebviewResizeObserver.observe(host);
+}
+
+/**
+ * Re-sync several frames — layout after `display:none` → `flex` often settles late.
+ *
+ * @returns {void}
+ */
+function burstSyncGuestWebviewBounds() {
+    let frames = 0;
+    const tick = () => {
+        syncGuestWebviewBounds();
+        if (++frames < 20) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+}
+
+attachGuestWebviewResizeObserver();
+if (webPreview) {
+    webPreview.addEventListener("dom-ready", () => {
+        syncGuestWebviewBounds();
+        burstSyncGuestWebviewBounds();
+    });
+    webPreview.addEventListener("did-stop-loading", () => {
+        syncGuestWebviewBounds();
+        burstSyncGuestWebviewBounds();
+    });
+}
+window.addEventListener("resize", syncGuestWebviewBounds);
+syncGuestWebviewBounds();
+
 const wbInput = document.getElementById('file_input');
 const wbChange = document.getElementById('file_change');
 const savedPlansSelect = document.getElementById('saved_plans_select');
@@ -595,7 +672,7 @@ function checkUrl(str) {
 // eslint-disable-next-line no-unused-vars
 function changeSiteLink() {
     document.getElementById('site_preview').style.display = "none";
-    document.getElementById('new_project').style.display = "inline";
+    document.getElementById('new_project').style.display = "";
 }
 
 /**
@@ -616,6 +693,7 @@ function loadScrapeSelectPage() {
     document.getElementById("web_preview").setAttribute('src', link)
     ipcRenderer.send('loadSearchPreview', link);
     syncPlanSettingsFormFromPlan();
+    burstSyncGuestWebviewBounds();
 }
 
 /**
@@ -693,7 +771,7 @@ function previewSite() {
 // eslint-disable-next-line no-unused-vars
 function scrapingPreview() {
     document.getElementById("select_data").style.display = 'none';
-    document.getElementById("scraping_preview").style.display = 'inline';
+    document.getElementById("scraping_preview").style.display = "flex";
     startScraping();
 }
 
@@ -786,11 +864,11 @@ function selectSheetPage() {
  */
 ipcRenderer.on('loadWebview', () => {
     document.getElementById("select_sheet").style.display = "none";
-    // Use block (not inline) so `#select_data` establishes a proper containing block for
-    // absolutely positioned children (`webview`, quad-buttons). `inline` breaks layout.
-    document.getElementById("select_data").style.display = "block";
+    // Match `#select_data` rules in `style.css` (`display: flex`); inline `block` would break the shell layout.
+    document.getElementById("select_data").style.display = "flex";
     syncPlanSettingsFormFromPlan();
     refreshSavedPlans();
+    burstSyncGuestWebviewBounds();
 })
 
 /**

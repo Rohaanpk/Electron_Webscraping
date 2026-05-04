@@ -1,0 +1,16 @@
+/**
+ * Loaded after Pico. Slightly lifts dark surfaces for contrast; light mode uses Pico defaults.
+ */
+[data-theme=dark] {
+  /* Default Pico dark page bg is ~rgb(19,22,31); lift for logos / long sessions */
+  --pico-background-color: #2c3140;
+  --pico-color: #dce2ec;
+  --pico-muted-color: #98a2b3;
+  --pico-muted-border-color: #3d4558;
+  --pico-card-background-color: #363d50;
+  --pico-card-sectioning-background-color: #3e465a;
+  --pico-form-element-background-color: #323848;
+  --pico-form-element-border-color: #3d4558;
+  --pico-secondary-background: #5a6782;
+  --pico-code-background-color: #2f3545;
+}
