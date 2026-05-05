@@ -1,222 +1,362 @@
-*{font-family:'Overpass';} 
-body{
-    background-color: #383131;
-    margin: 0;
-    overflow-x: hidden;
-    overflow-y: hidden;
+/**
+ * Electron + Pico — layout and webview rules only.
+ * Pico handles typography, forms, and buttons; keep overrides scoped and small.
+ */
+@import url("https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700&display=swap");
+
+:root {
+  --pico-font-family: "Overpass", var(--pico-font-family-sans-serif);
+  --app-shell-radius: 0.75rem;
 }
 
-input {
-    font-style: italic;
-    color: #707070;
-    text-align: center;
-    font-size: 8vh;
-    width: 90vw;
-    height: 12vh;
-    background-color: #ffffff;
-    margin:5vw auto 0px;
-    display: block;
+html {
+  height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
-
-
-.centered-text{
-    color: #FFFFFF;
-    text-align: center;
-    margin: 10vh auto 0px;
-    font-size: 1.83vw;
-    width: 50vw;
-    font-weight: bold;
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
-.data-prep {
-    height: 70vh;
-    width: 70vw;
-    opacity: 0.8;
-    position: absolute;
-    right: 0;
-    margin: 5vh;
+/* -------------------------------------------------------------------------- */
+/* New project wizard                                                       */
+/* -------------------------------------------------------------------------- */
+
+.wizard-step {
+  box-sizing: border-box;
 }
 
-.dual-buttons-input {
-    width: 47%;
-    background-color: #D3D3D3;
-    height: 100%;
-    font-size: 6vh;
-    font-size: 3.03vw;
-    color: #707070;
-    z-index: 2;
+.wizard-step--fill {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--pico-block-spacing-vertical) var(--pico-block-spacing-horizontal);
 }
 
-.preview {
-    z-index: 0;
-    left: 0;
-    right: 0;
-    margin-left: auto;
-    margin-right: auto;
-    height: 100vh;
-    width: 100vw;
-    opacity: 0.5;
-    pointer-events: none;
-    user-select: none;
-    position: absolute;
+.wizard-card {
+  width: min(40rem, 100%);
 }
 
-.quad-buttons {
-    position: absolute;
-    width: 70vw;
-    height: auto;
-    display: flex;
-    justify-content: space-between;
-    bottom: 0;
-    right: 0;
-    margin: 0 2.8vw 5vh;   
+.wizard-card header {
+  margin-bottom: var(--pico-typography-spacing-vertical);
 }
 
-.scraping-button {
-    position:absolute;
-    margin: 5% 5%;
-    align-content: center;
-    display: inline-flex;
-    align-items: center; 
-    background-color: #D3D3D3;
-    font-size: 3.5vw;
-    height: 20vh;
-    width: 90%;
-    color: #707070;
-    z-index: 0;
-    bottom: 0;
+.wizard-actions {
+  margin-top: var(--pico-spacing);
 }
 
-.scraping-list {
-    padding: 0;
-    list-style-type: none;
-    color: #707070;
-    
+.preview-stage {
+  position: relative;
+  display: none;
+  flex-direction: column;
+  height: 100vh;
+  min-height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
 }
 
-.scraping-preview {
-    height: 100vh;
-    width: 100vw;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
+/* Electron `<webview>` needs a flex parent with real height — bare flex on webview is unreliable. */
+.webview-flex-fill {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  position: relative;
 }
 
-.scraping-site-preview {
-    height: 80vh;
-    width: 70vw;
-    opacity: 0.8;
-    margin: 5vh;
-    background-color: red;
+.webview-flex-fill > webview {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  min-width: 0;
+  height: 100%;
+  align-self: stretch;
+  border: none;
 }
 
-.select-sheet {
-    flex-direction: column;
+.preview-stage .webview-flex-fill > webview.preview-backdrop {
+  opacity: 0.5;
+  pointer-events: none;
+  user-select: none;
 }
 
-.skinnier-buttons {
-    display: inline-flex;
-    align-items: center; 
-    background-color: #D3D3D3;
-    color: #707070;
-    width: 16vw;
-    height: 18vh;
-    text-align: center;
-    
-    font-size: 4.15vh;
-    font-size: 2.1vw;
-    z-index: 0;
-    text-align: center;
+.preview-bottom-sheet {
+  flex-shrink: 0;
+  margin: 0;
+  border-radius: var(--app-shell-radius) var(--app-shell-radius) 0 0;
+  box-shadow: 0 -0.5rem 2rem rgba(0, 0, 0, 0.25);
 }
 
-.two-buttons {
-    display: flex;
-    flex-direction: row;
-    height: 25vh;
-    margin: 1% auto;
-    justify-content: space-between;
-    width: 90vw;
+.preview-bottom-sheet header {
+  text-align: center;
 }
 
-.url-heading {
-    text-decoration: underline;
-    text-align: center;
-     margin: 5%; 
-    font-size: 2.5vh;
-    font-size: 1.26vw;
-    font-weight: bold;
-    width: 90%;
-    height: 2em;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow-y: hidden;
+.sheet-choice {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--pico-spacing);
+  text-align: center;
 }
 
-.url-heading::-webkit-scrollbar {
-    display: none;
+.sheet-choice header {
+  max-width: 36rem;
 }
 
-.webpage-preview {
-    display: none;
+.sheet-choice [role="group"] {
+  margin-top: calc(var(--pico-spacing) * 1.5);
+  width: min(40rem, 100%);
 }
 
-.white-box {
-    height: 45vh;
-    width: 100vw;
-    background-color: white;
-    position: absolute; 
-    z-index: 1; 
-    display: flex;
-    flex-direction: column;
-    align-content: center;
-    justify-content: center;
-    border: #707070;
-    border-width: 2px;
-    border-style: solid;
+/* -------------------------------------------------------------------------- */
+/* Selector prep — `#select_data` is the flex host for sidebar + webview     */
+/* -------------------------------------------------------------------------- */
+
+#select_data {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  max-height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: clamp(0.65rem, 1.2vw, 1.1rem);
+  padding: clamp(0.5rem, 1.5vh, 1rem) clamp(0.65rem, 1.5vw, 1.1rem);
+  overflow: hidden;
 }
 
-.white-box-centered {
-    background-color: white;
-    height: 50vh;
-    width: 50vw;
-    position: absolute;
-    top: 25%;
-    left: 25%;
-    border: #707070;
-    border-width: 2px;
-    border-style: solid;
+/*
+ * Guest column: CSS Grid gives row 1 a real fractional height (1fr). Flex-only columns
+ * often collapse for Electron `<webview>`; grid + absolute fill is reliable.
+ */
+#select_data .select-data-main {
+  flex: 1 1 0%;
+  min-width: 0;
+  min-height: 0;
+  align-self: stretch;
+  /* Fill sidebar row so grid `1fr` has real height (not content-sized to webview’s 150px default). */
+  height: 100%;
+  max-height: 100%;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  overflow: hidden;
 }
 
-.white-box-left {
-    background-color: #ffffff;
-    z-index: -1;
-    height: 90vh;
-    margin: 5vh 5vh;
-    width: 22vw;
-    position: absolute
+#select_data .select-data-webview-host {
+  grid-row: 1;
+  grid-column: 1;
+  min-width: 0;
+  /* Block webview’s intrinsic 150px from shrinking the row; fill the `1fr` track. */
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
+  width: 100%;
+  align-self: stretch;
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--app-shell-radius);
+  box-shadow: var(--pico-card-box-shadow);
+  border: var(--pico-border-width) solid var(--pico-muted-border-color);
 }
 
-.white-box-text {
-    text-align: center;
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    margin: 1% 0px;
-    color: #707070;
-    font-size: 2.02vw;
-    font-weight: bold;
-    height: 30%;
+/*
+ * Guest `<webview>`: Electron lays out the shadow iframe with `display:flex` on the tag.
+ * Do not use `display:block` here — it prevents the internal iframe from filling the webview
+ * (see Electron docs: webview-tag CSS styling notes).
+ * `new_project.js` syncs px bounds to the host; width/height 100% helps before/without JS.
+ */
+#select_data .select-data-webview-host > webview.data-prep {
+  box-sizing: border-box;
+  margin: 0;
+  border: none;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  align-self: stretch;
 }
 
-.white-box-two-buttons {
-    display: flex;
-    flex-direction: row;
-    width: 90%;
-    flex: 1;
-    margin: 1% auto;
-    justify-content: space-between;
-    z-index: 2;
-    
+.selector-sidebar {
+  flex: 0 0 min(22rem, 34vw);
+  width: min(22rem, 34vw);
+  max-width: min(22rem, 34vw);
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--app-shell-radius);
+}
+
+.selector-sidebar__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--pico-spacing);
+  -webkit-overflow-scrolling: touch;
+}
+
+.selector-sidebar__scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.selector-sidebar__scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 8px;
+}
+
+.selector-sidebar__footer {
+  flex: 0 0 auto;
+  padding: var(--pico-spacing);
+  border-top: var(--pico-border-width) solid var(--pico-muted-border-color);
+  background: var(--pico-card-background-color);
+}
+
+.scraping-list--sidebar {
+  margin: 0 0 var(--pico-spacing);
+  padding: 0 0 var(--pico-spacing);
+  border-bottom: var(--pico-border-width) solid var(--pico-muted-border-color);
+  list-style: none;
+}
+
+.scraping-list--sidebar .selector-line {
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding: 0.45rem 0.55rem;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--pico-color);
+  background: var(--pico-card-background-color);
+  border: var(--pico-border-width) solid var(--pico-muted-border-color);
+  border-radius: var(--pico-border-radius);
+  word-break: break-word;
+}
+
+.url-heading-wrap {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.url-heading--sidebar {
+  margin: 0;
+  padding: 0.35rem 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: left;
+  color: var(--pico-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.config-panel {
+  margin-bottom: var(--pico-spacing);
+}
+
+.config-panel > hgroup,
+.config-panel > h3 {
+  margin-bottom: var(--pico-spacing);
+}
+
+.config-panel > h3 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--pico-muted-color);
+}
+
+.plan-status {
+  margin: var(--pico-spacing) 0 0;
+  font-size: 0.8125rem;
+  color: var(--pico-muted-color);
+  word-break: break-word;
+}
+
+#select_data .quad-buttons {
+  grid-row: 2;
+  grid-column: 1;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--pico-spacing);
+  margin: 0;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Scraping run (pause + iframe preview)                                     */
+/* -------------------------------------------------------------------------- */
+
+.scraping-run {
+  display: none;
+  flex-direction: row;
+  align-items: stretch;
+  min-height: 100vh;
+  gap: var(--pico-spacing);
+  padding: var(--pico-spacing);
+  box-sizing: border-box;
+}
+
+.scraping-run__aside {
+  flex: 0 0 min(16rem, 28vw);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.scraping-run__main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scraping-run__main iframe {
+  width: min(100%, 56rem);
+  height: min(80vh, 40rem);
+  border: var(--pico-border-width) solid var(--pico-muted-border-color);
+  border-radius: var(--app-shell-radius);
+  background: var(--pico-card-background-color);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Theme control (fixed)                                                      */
+/* -------------------------------------------------------------------------- */
+
+.theme-floating {
+  position: fixed;
+  top: 0.45rem;
+  right: 0.45rem;
+  z-index: 10000;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8125rem;
+  border-radius: var(--pico-border-radius);
+  background: var(--pico-card-background-color);
+  border: var(--pico-border-width) solid var(--pico-muted-border-color);
+  box-shadow: var(--pico-box-shadow);
+}
+
+.theme-floating__label {
+  font-weight: 600;
+  margin: 0;
 }
