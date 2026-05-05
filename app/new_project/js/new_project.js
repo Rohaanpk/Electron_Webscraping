@@ -101,6 +101,30 @@ if (webPreview) {
 window.addEventListener("resize", syncGuestWebviewBounds);
 syncGuestWebviewBounds();
 
+/** @type {ReturnType<typeof setTimeout> | null} */
+let guestToastHideTimer = null;
+
+/**
+ * Brief toast over the guest webview when the user picks an invalid element for the current mode.
+ *
+ * @param {string} message
+ * @returns {void}
+ */
+function showGuestToast(message) {
+    const el = document.getElementById("guest_feedback_toast");
+    if (!el) return;
+    el.textContent = message;
+    el.hidden = false;
+    requestAnimationFrame(() => el.classList.add("guest-feedback-toast--visible"));
+    clearTimeout(guestToastHideTimer);
+    guestToastHideTimer = setTimeout(() => {
+        el.classList.remove("guest-feedback-toast--visible");
+        guestToastHideTimer = setTimeout(() => {
+            el.hidden = true;
+        }, 230);
+    }, 4200);
+}
+
 const wbInput = document.getElementById('file_input');
 const wbChange = document.getElementById('file_change');
 const savedPlansSelect = document.getElementById('saved_plans_select');
@@ -572,51 +596,47 @@ function applySelectedPlan() {
  * @returns {Promise<void>} Resolves when parsing completes and `codes` is populated.
  */
 async function actOnXLSX(file) {
-    // Reads file
+    codes = [];
     const fileReader = new FileReader();
 
     const data = await new Promise((resolve, reject) => {
-        fileReader.onload = () => {
-            resolve(fileReader.result);
-        };
-        fileReader.onerror = reject;
-        // Converts file to array buffer
+        fileReader.onload = () => resolve(fileReader.result);
+        fileReader.onerror = () =>
+            reject(new Error(fileReader.error?.message || "Could not read file."));
         fileReader.readAsArrayBuffer(file);
-    })
-        .finally(() => {
-            fileReader.onerror = fileReader.onload = null;
-        });
-    console.log(data);
+    }).finally(() => {
+        fileReader.onerror = fileReader.onload = null;
+    });
 
-    // Reads array buffer as data
-    const workbook = XLSX.read(data);
-    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    console.log(worksheet);
-
-    // var columnA = []
-    var intChecker = 1
-    // iterate through the data and get the content within the first column and store it to an array
-    for (let z in worksheet) {
-        if (z.toString()[0] === 'A') {
-            var x = parseInt(z.replace(/A/, ""))
-            let cellInt = x + 1
-            while (true) {
-                if (intChecker == cellInt - 1) {
-                    codes.push(worksheet[z].v);
-                    console.log(x, worksheet[z].v)
-                    break
-                }
-                else {
-                    codes.push("")
-                    console.log(intChecker, "")
-                    intChecker++
-                }
-            }
-            intChecker = cellInt;
-        }
+    const workbook = XLSX.read(data, { type: "array" });
+    const sheetName = workbook.SheetNames[0];
+    if (!sheetName) {
+        throw new Error("No worksheets found in file.");
     }
-    // log the first column data to console
-    console.log(codes);
+    const worksheet = workbook.Sheets[sheetName];
+    if (!worksheet) {
+        throw new Error("First worksheet is empty.");
+    }
+
+    let intChecker = 1;
+    for (const z in worksheet) {
+        if (!z || z[0] !== "A") continue;
+        const x = parseInt(z.slice(1), 10);
+        if (Number.isNaN(x)) continue;
+        const cellInt = x + 1;
+        const cell = worksheet[z];
+        const value = cell && Object.prototype.hasOwnProperty.call(cell, "v") ? cell.v : "";
+
+        while (true) {
+            if (intChecker === cellInt - 1) {
+                codes.push(value);
+                break;
+            }
+            codes.push("");
+            intChecker++;
+        }
+        intChecker = cellInt;
+    }
 }
 
 // =============================================================================
@@ -641,8 +661,7 @@ function changeSheet() {
 function checkUrl(str) {
     try {
         new URL(str);
-    } catch (err) {
-        console.log(err);
+    } catch {
         return false;
     }
     return true;
@@ -758,13 +777,12 @@ function buildDefaultPlanName() {
 async function savePlanSnapshot() {
     try {
         const customName = planNameInput && planNameInput.value.trim();
-        const response = await ipcRenderer.invoke('saveScrapePlan', {
+        await ipcRenderer.invoke('saveScrapePlan', {
             name: customName || buildDefaultPlanName(),
             plan: scrapePlan,
         });
-        console.log("Saved scrape plan:", response?.insertedId || response);
     } catch (err) {
-        console.log("Failed to save scrape plan:", err?.message || err);
+        console.warn("Failed to save scrape plan:", err?.message || err);
     }
 }
 
@@ -777,16 +795,15 @@ async function savePlanSnapshot() {
  */
 async function saveScrapeRun(rows, startedAt) {
     try {
-        const response = await ipcRenderer.invoke('saveScrapeRun', {
+        await ipcRenderer.invoke('saveScrapeRun', {
             startedAt: startedAt,
             completedAt: new Date().toISOString(),
             rowCount: rows.length,
             planSnapshot: scrapePlan,
             rows: rows,
         });
-        console.log("Saved scrape run:", response?.insertedId || response);
     } catch (err) {
-        console.log("Failed to save scrape run:", err?.message || err);
+        console.warn("Failed to save scrape run:", err?.message || err);
     }
 }
 
@@ -814,6 +831,15 @@ function selectSheetPage() {
 // =============================================================================
 // IPC — main process → host renderer (forwarded guest events)
 // =============================================================================
+ipcRenderer.on("wrong-search", (_event, detail) => {
+    const hint = detail != null && detail !== "" ? String(detail) : "";
+    showGuestToast(
+        hint
+            ? `That element does not match this mode (${hint}). Try another element.`
+            : "That element does not match this mode. Right-click a different element."
+    );
+});
+
 /**
  * IPC: stores the selected searchbar selector in `scrapePlan.site.searchInputSelector`.
  *
@@ -885,27 +911,44 @@ ipcRenderer.on('imgXpathRenderer', (_event, arg) => {
  *
  * @returns {void}
  */
-wbChange.addEventListener("change", () => {
-    wbInput.files.length = 0
-    if (wbChange.files.length === 0)
-        return;
-
-    actOnXLSX(wbChange.files[0]);
-}, false);
+wbChange.addEventListener(
+    "change",
+    async () => {
+        const file = wbChange.files && wbChange.files[0];
+        wbChange.value = "";
+        if (!file) return;
+        try {
+            await actOnXLSX(file);
+            setPlanStatus("Spreadsheet replaced.");
+        } catch (err) {
+            console.warn("Spreadsheet read failed:", err?.message || err);
+            alert(`Could not read the spreadsheet: ${err?.message || err}`);
+        }
+    },
+    false
+);
 
 /**
  * Handles selecting the initial spreadsheet, then advances to selector prep.
  *
  * @returns {void}
  */
-wbInput.addEventListener("change", () => {
-    wbInput.files.length = 0
-    if (wbInput.files.length === 0)
-        return;
-
-    actOnXLSX(wbInput.files[0]);
-    loadScrapeSelectPage()
-}, false);
+wbInput.addEventListener(
+    "change",
+    async () => {
+        const file = wbInput.files && wbInput.files[0];
+        wbInput.value = "";
+        if (!file) return;
+        try {
+            await actOnXLSX(file);
+            loadScrapeSelectPage();
+        } catch (err) {
+            console.warn("Spreadsheet read failed:", err?.message || err);
+            alert(`Could not read the spreadsheet: ${err?.message || err}`);
+        }
+    },
+    false
+);
 
 // =============================================================================
 // Selenium scrape engine — locator resolution, navigation, extraction, main loop
@@ -943,7 +986,7 @@ async function clickSelectorChain(driver, selectors) {
             const element = await driver.findElement(selectorToBy(selector));
             await element.click();
         } catch (err) {
-            console.log("Click selector failed:", selector, err?.message || err);
+            console.warn("Click selector failed:", selector.identifierValue, err?.message || err);
         }
     }
 }
@@ -1056,9 +1099,8 @@ async function startScraping() {
                 await clickSelectorChain(driver, scrapePlan.navigation.openResultSelectors);
                 const extracted = await extractConfiguredFields(driver);
                 outputRows.push({ sku, ...extracted });
-                console.log("Scraped row:", i, outputRows[outputRows.length - 1]);
             } catch (rowErr) {
-                console.log("Row scrape failed:", i, rowErr?.message || rowErr);
+                console.warn("Row scrape failed:", i, rowErr?.message || rowErr);
                 if (!scrapePlan.behavior.continueOnRowError) throw rowErr;
             }
         }
@@ -1067,5 +1109,5 @@ async function startScraping() {
     }
 
     await saveScrapeRun(outputRows, startedAt);
-    console.log("Scraping completed. Rows:", outputRows.length);
+    console.info(`Scraping finished: ${outputRows.length} row(s).`);
 }

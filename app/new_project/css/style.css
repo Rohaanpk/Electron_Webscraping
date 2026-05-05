@@ -147,6 +147,7 @@ body {
   min-width: 0;
   min-height: 0;
   align-self: stretch;
+  position: relative;
   /* Fill sidebar row so grid `1fr` has real height (not content-sized to webview’s 150px default). */
   height: 100%;
   max-height: 100%;
@@ -156,6 +157,32 @@ body {
   grid-template-rows: minmax(0, 1fr) auto;
   gap: 0.65rem;
   overflow: hidden;
+}
+
+/* Guest validation feedback (forwarded `wrong-search` from main) */
+#select_data .guest-feedback-toast {
+  position: absolute;
+  bottom: 0.65rem;
+  left: 50%;
+  z-index: 20;
+  max-width: min(36rem, calc(100% - 1.5rem));
+  padding: 0.5rem 0.85rem;
+  font-size: 0.875rem;
+  line-height: 1.35;
+  text-align: center;
+  border-radius: var(--pico-border-radius);
+  background: var(--pico-card-background-color);
+  border: var(--pico-border-width) solid var(--pico-muted-border-color);
+  box-shadow: var(--pico-box-shadow);
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 10px);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+#select_data .guest-feedback-toast.guest-feedback-toast--visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
 #select_data .select-data-webview-host {
