@@ -28,6 +28,25 @@ const webPreview = document.getElementById("web_preview");
 let guestWebviewResizeObserver = null;
 
 /**
+ * Sends a channel message to the guest `<webview>` preload (`preload.js`).
+ *
+ * @param {string} channel
+ * @param {...unknown} args
+ * @returns {void}
+ */
+function sendToGuest(channel, ...args) {
+    if (!webPreview || typeof webPreview.send !== "function") return;
+    try {
+        webPreview.send(channel, ...args);
+    } catch (err) {
+        console.warn("Guest webview IPC failed:", channel, err);
+    }
+}
+
+/** @type {{ kind: "search" } | { kind: "openResult"; index: number } | { kind: "textFields"; index: number } | { kind: "imageFields"; index: number } | null} */
+let selectorModalTarget = null;
+
+/**
  * Returns the layout box that should define guest `<webview>` bounds.
  *
  * @returns {HTMLElement | null}
@@ -216,18 +235,21 @@ function buildSelectorDescriptor(key, identifierType, identifierValue) {
  *
  * @param {unknown} payload
  * @param {string} key
- * @returns {{ key: string, identifierType: "xpath"|"css"|"id"|"className", identifierValue: string, xpath?: string, attr?: "src"|"href" }}
+ * @returns {{ key: string, identifierType: "xpath"|"css"|"id"|"className", identifierValue: string, xpath?: string|null, attr?: "src"|"href", attributes?: Record<string, string>, tagName?: string, displayName?: string }}
  */
 function normalizeSelectorPayload(payload, key) {
     if (typeof payload === "string") {
         return {
             ...buildSelectorDescriptor(key, "xpath", payload),
             xpath: payload,
+            attributes: {},
+            tagName: "",
+            displayName: "",
         };
     }
 
     if (payload && typeof payload === "object") {
-        const candidate = /** @type {{identifierType?: string, identifierValue?: string, xpath?: string, attr?: "src"|"href"}} */ (payload);
+        const candidate = /** @type {{identifierType?: string, identifierValue?: string, xpath?: string|null, attr?: "src"|"href", attributes?: Record<string, string>, tagName?: string, displayName?: string}} */ (payload);
         const identifierType = candidate.identifierType === "id" || candidate.identifierType === "className" || candidate.identifierType === "css"
             ? candidate.identifierType
             : "xpath";
@@ -235,24 +257,48 @@ function normalizeSelectorPayload(payload, key) {
             ? candidate.identifierValue
             : (candidate.xpath || "");
 
+        const attributes =
+            candidate.attributes && typeof candidate.attributes === "object" && !Array.isArray(candidate.attributes)
+                ? { ...candidate.attributes }
+                : {};
+
         return {
             ...buildSelectorDescriptor(key, identifierType, identifierValue),
-            xpath: candidate.xpath,
+            xpath: candidate.xpath != null ? candidate.xpath : null,
             attr: candidate.attr,
+            attributes,
+            tagName: typeof candidate.tagName === "string" ? candidate.tagName : "",
+            displayName: typeof candidate.displayName === "string" ? candidate.displayName : "",
         };
     }
 
     return {
         ...buildSelectorDescriptor(key, "xpath", ""),
         xpath: "",
+        attributes: {},
+        tagName: "",
+        displayName: "",
     };
+}
+
+/**
+ * XPath string used for display in Plan settings and for guest highlight.
+ *
+ * @param {{ identifierType?: string, identifierValue?: string, xpath?: string|null } | null | undefined} sel
+ * @returns {string}
+ */
+function getXPathForPlanDisplay(sel) {
+    if (!sel) return "";
+    if (sel.xpath != null && String(sel.xpath).trim() !== "") return String(sel.xpath).trim();
+    if (sel.identifierType === "xpath" && sel.identifierValue) return String(sel.identifierValue);
+    return "";
 }
 
 /**
  * Appends a selector descriptor to a field list in `scrapePlan.extraction`.
  *
  * @param {"textFields"|"imageFields"} target
- * @param {{ key?: string, identifierType: "xpath"|"css"|"id"|"className", identifierValue: string, xpath?: string, attr?: "src"|"href" }} selector
+ * @param {{ key?: string, identifierType: "xpath"|"css"|"id"|"className", identifierValue: string, xpath?: string|null, attr?: "src"|"href", attributes?: Record<string, string>, tagName?: string, displayName?: string }} selector
  * @param {{ attr?: "src"|"href", multiple?: boolean }} [options]
  * @returns {boolean} True if a new field was added.
  */
@@ -263,14 +309,22 @@ function addExtractionField(target, selector, options = {}) {
     );
     if (existing) return false;
 
+    const meta = {
+        xpath: selector.xpath != null ? selector.xpath : null,
+        attributes: selector.attributes || {},
+        tagName: selector.tagName || "",
+        displayName: selector.displayName || "",
+    };
+
     if (target === "textFields") {
-        scrapePlan.extraction.textFields.push(
-            buildSelectorDescriptor(
+        scrapePlan.extraction.textFields.push({
+            ...buildSelectorDescriptor(
                 selector.key || `text_${scrapePlan.extraction.textFields.length + 1}`,
                 selector.identifierType,
                 selector.identifierValue
-            )
-        );
+            ),
+            ...meta,
+        });
         return true;
     }
 
@@ -281,6 +335,7 @@ function addExtractionField(target, selector, options = {}) {
             selector.identifierType,
             selector.identifierValue
         ),
+        ...meta,
         multiple: options.multiple ?? selector.multiple ?? d.imageMultiple,
         attr: options.attr ?? selector.attr ?? d.imageAttr,
     });
@@ -291,7 +346,7 @@ function addExtractionField(target, selector, options = {}) {
  * Adds a navigation selector if it does not already exist.
  *
  * @param {"openResultSelectors"|"preSearchClickSelectors"|"variantOptionSelectors"} target
- * @param {{ key?: string, identifierType: "xpath"|"css"|"id"|"className", identifierValue: string }} selector
+ * @param {{ key?: string, identifierType: "xpath"|"css"|"id"|"className", identifierValue: string, xpath?: string|null, attributes?: Record<string, string>, tagName?: string, displayName?: string }} selector
  * @returns {boolean} True if a new selector was added.
  */
 function addNavigationField(target, selector) {
@@ -301,12 +356,19 @@ function addNavigationField(target, selector) {
         selector.identifierType,
         selector.identifierValue
     );
+    const row = {
+        ...descriptor,
+        xpath: selector.xpath != null ? selector.xpath : null,
+        attributes: selector.attributes || {},
+        tagName: selector.tagName || "",
+        displayName: selector.displayName || "",
+    };
 
     if (target === "preSearchClickSelectors") {
         const exists = scrapePlan.site.preSearchClickSelectors.some(
             (f) => f.identifierType === descriptor.identifierType && f.identifierValue === descriptor.identifierValue
         );
-        if (!exists) scrapePlan.site.preSearchClickSelectors.push(descriptor);
+        if (!exists) scrapePlan.site.preSearchClickSelectors.push(row);
         return !exists;
     }
 
@@ -317,7 +379,7 @@ function addNavigationField(target, selector) {
     const exists = list.some(
         (f) => f.identifierType === descriptor.identifierType && f.identifierValue === descriptor.identifierValue
     );
-    if (!exists) list.push(descriptor);
+    if (!exists) list.push(row);
     return !exists;
 }
 
@@ -399,26 +461,11 @@ if (typeof window !== 'undefined') {
 }
 
 /**
- * Writes a single selector description line to the selector list UI.
- *
- * @param {string} text
- * @returns {void}
- */
-function appendSelectorUiLine(text) {
-    if (!scrapingList) return;
-    const li = document.createElement("li");
-    li.className = "selector-line";
-    li.appendChild(document.createTextNode(text));
-    li.contentEditable = "true";
-    scrapingList.insertBefore(li, scrapingList.lastElementChild?.nextSibling || null);
-}
-
-/**
- * Clears and repopulates the selector list UI from the current `scrapePlan`.
+ * Rebuilds only the URL heading row in `#scraping_list`.
  *
  * @returns {void}
  */
-function renderSelectorsFromPlan() {
+function renderUrlHeadingOnly() {
     if (!scrapingList) return;
     const heading = document.getElementById("url_heading");
     scrapingList.innerHTML = "";
@@ -428,24 +475,106 @@ function renderSelectorsFromPlan() {
         wrap.appendChild(heading);
         scrapingList.appendChild(wrap);
     }
+}
 
-    if (scrapePlan.site.searchInputSelector) {
-        appendSelectorUiLine(
-            `searchInput -> ${scrapePlan.site.searchInputSelector.identifierType}: ${scrapePlan.site.searchInputSelector.identifierValue}`
-        );
-    }
+/**
+ * Refreshes Search bar panel + Plan settings XPath list from `scrapePlan`.
+ *
+ * @returns {void}
+ */
+function refreshCapturedSelectorsUi() {
+    renderSearchBarPanel();
+    renderPlanCapturedXpaths();
+}
 
-    for (const selector of scrapePlan.navigation.openResultSelectors) {
-        appendSelectorUiLine(`openResult -> ${selector.identifierType}: ${selector.identifierValue}`);
+/**
+ * Updates the Search bar panel (XPath only; details in modal).
+ *
+ * @returns {void}
+ */
+function renderSearchBarPanel() {
+    const empty = document.getElementById("search_bar_empty");
+    const active = document.getElementById("search_bar_active");
+    const xpEl = document.getElementById("search_bar_xpath");
+    const sel = scrapePlan.site.searchInputSelector;
+    if (!empty || !active || !xpEl) return;
+    if (!sel) {
+        empty.hidden = false;
+        active.hidden = true;
+        return;
     }
+    empty.hidden = true;
+    active.hidden = false;
+    xpEl.textContent = getXPathForPlanDisplay(sel) || "(no xpath)";
+}
 
-    for (const field of scrapePlan.extraction.textFields) {
-        appendSelectorUiLine(`${field.key} -> ${field.identifierType}: ${field.identifierValue}`);
-    }
+/**
+ * Renders captured navigation + extraction entries under Plan settings (XPath lines only).
+ *
+ * @returns {void}
+ */
+function renderPlanCapturedXpaths() {
+    const ul = document.getElementById("plan_captured_xpaths");
+    if (!ul) return;
+    ul.innerHTML = "";
 
-    for (const field of scrapePlan.extraction.imageFields) {
-        appendSelectorUiLine(`${field.key} -> ${field.identifierType}: ${field.identifierValue} (attr: ${field.attr || "src"})`);
-    }
+    const pushRow = (label, xpathStr, highlightXPath, modalKind, index) => {
+        const xpPath = highlightXPath || xpathStr;
+        const li = document.createElement("li");
+        li.className = "plan-captured-xpaths__item";
+        const row = document.createElement("div");
+        row.className = "plan-captured-xpaths__row";
+        const nameEl = document.createElement("span");
+        nameEl.className = "plan-captured-xpaths__name";
+        if (label) nameEl.textContent = label;
+        const code = document.createElement("code");
+        code.className = "plan-captured-xpaths__xpath";
+        code.textContent = xpathStr || "(no xpath)";
+        code.tabIndex = 0;
+        code.title = "Hover to highlight on preview; click for attributes";
+        code.addEventListener("mouseenter", () => {
+            if (xpPath) sendToGuest("highlight-xpath", xpPath);
+        });
+        code.addEventListener("mouseleave", () => sendToGuest("clear-xpath-highlight"));
+        code.addEventListener("click", (ev) => {
+            ev.preventDefault();
+            if (modalKind === "openResult") openSelectorModal({ kind: "openResult", index });
+            else if (modalKind === "textFields") openSelectorModal({ kind: "textFields", index });
+            else if (modalKind === "imageFields") openSelectorModal({ kind: "imageFields", index });
+        });
+        row.appendChild(nameEl);
+        row.appendChild(code);
+        li.appendChild(row);
+        ul.appendChild(li);
+    };
+
+    scrapePlan.navigation.openResultSelectors.forEach((sel, index) => {
+        const xpathStr = getXPathForPlanDisplay(sel);
+        const disp = sel.displayName ? String(sel.displayName) : "";
+        pushRow(disp || `Open result ${index + 1}`, xpathStr, xpathStr, "openResult", index);
+    });
+
+    scrapePlan.extraction.textFields.forEach((sel, index) => {
+        const xpathStr = getXPathForPlanDisplay(sel);
+        const disp = sel.displayName ? String(sel.displayName) : "";
+        pushRow(disp || sel.key || `Text ${index + 1}`, xpathStr, xpathStr, "textFields", index);
+    });
+
+    scrapePlan.extraction.imageFields.forEach((sel, index) => {
+        const xpathStr = getXPathForPlanDisplay(sel);
+        const disp = sel.displayName ? String(sel.displayName) : "";
+        pushRow(disp || sel.key || `Image ${index + 1}`, xpathStr, xpathStr, "imageFields", index);
+    });
+}
+
+/**
+ * Clears and repopulates sidebar selector summary from the current `scrapePlan`.
+ *
+ * @returns {void}
+ */
+function renderSelectorsFromPlan() {
+    renderUrlHeadingOnly();
+    refreshCapturedSelectorsUi();
 }
 
 /**
@@ -453,22 +582,28 @@ function renderSelectorsFromPlan() {
  *
  * @param {unknown} selector
  * @param {string} fallbackKey
- * @returns {{ key: string, identifierType: "xpath"|"css"|"id"|"className", identifierValue: string, attr?: "src"|"href", multiple?: boolean } | null}
+ * @returns {{ key: string, identifierType: "xpath"|"css"|"id"|"className", identifierValue: string, attr?: "src"|"href", multiple?: boolean, xpath?: string|null, attributes?: Record<string, string>, tagName?: string, displayName?: string } | null}
  */
 function normalizeStoredSelector(selector, fallbackKey) {
     if (!selector || typeof selector !== "object") return null;
-    const s = /** @type {{key?: string, identifierType?: string, identifierValue?: string, xpath?: string, attr?: "src"|"href", multiple?: boolean}} */ (selector);
+    const s = /** @type {{key?: string, identifierType?: string, identifierValue?: string, xpath?: string|null, attr?: "src"|"href", multiple?: boolean, attributes?: Record<string, string>, tagName?: string, displayName?: string}} */ (selector);
     const type = s.identifierType === "id" || s.identifierType === "className" || s.identifierType === "css"
         ? s.identifierType
         : "xpath";
-    const value = (typeof s.identifierValue === "string" && s.identifierValue) || s.xpath || "";
+    const value = (typeof s.identifierValue === "string" && s.identifierValue) || (typeof s.xpath === "string" ? s.xpath : "") || "";
     if (!value) return null;
+    const attributes =
+        s.attributes && typeof s.attributes === "object" && !Array.isArray(s.attributes) ? { ...s.attributes } : {};
     return {
         key: s.key || fallbackKey,
         identifierType: type,
         identifierValue: value,
         attr: s.attr,
         multiple: s.multiple,
+        xpath: s.xpath != null ? s.xpath : null,
+        attributes,
+        tagName: typeof s.tagName === "string" ? s.tagName : "",
+        displayName: typeof s.displayName === "string" ? s.displayName : "",
     };
 }
 
@@ -704,6 +839,7 @@ function revealSelectorPrep() {
     syncPlanSettingsFormFromPlan();
     refreshSavedPlans();
     burstSyncGuestWebviewBounds();
+    refreshCapturedSelectorsUi();
 }
 
 /**
@@ -829,6 +965,192 @@ function selectSheetPage() {
 }
 
 // =============================================================================
+// Selector detail modal + hover highlight (guest webview)
+// =============================================================================
+/**
+ * @param {{ kind: "search" } | { kind: "openResult"; index: number } | { kind: "textFields"; index: number } | { kind: "imageFields"; index: number } | null} target
+ * @returns {object | null}
+ */
+function getDescriptorRecordForModal(target) {
+    if (!target) return null;
+    if (target.kind === "search") return scrapePlan.site.searchInputSelector;
+    if (target.kind === "openResult") return scrapePlan.navigation.openResultSelectors[target.index] ?? null;
+    if (target.kind === "textFields") return scrapePlan.extraction.textFields[target.index] ?? null;
+    if (target.kind === "imageFields") return scrapePlan.extraction.imageFields[target.index] ?? null;
+    return null;
+}
+
+/**
+ * @param {{ kind: "search" } | { kind: "openResult"; index: number } | { kind: "textFields"; index: number } | { kind: "imageFields"; index: number }} target
+ * @returns {void}
+ */
+function openSelectorModal(target) {
+    selectorModalTarget = target;
+    const dlg = document.getElementById("selector_detail_modal");
+    if (!dlg || typeof dlg.showModal !== "function") return;
+    fillSelectorModal();
+    dlg.showModal();
+}
+
+/**
+ * @returns {void}
+ */
+function closeSelectorModal() {
+    const dlg = document.getElementById("selector_detail_modal");
+    selectorModalTarget = null;
+    if (dlg && typeof dlg.close === "function") dlg.close();
+}
+
+/**
+ * @returns {void}
+ */
+function fillSelectorModal() {
+    const title = document.getElementById("selector_detail_title");
+    const sub = document.getElementById("selector_detail_subtitle");
+    const tbody = document.getElementById("selector_detail_attrs_body");
+    const nameInput = document.getElementById("selector_detail_name");
+    if (!selectorModalTarget || !title || !tbody || !nameInput) return;
+    const rec = getDescriptorRecordForModal(selectorModalTarget);
+    if (!rec) {
+        closeSelectorModal();
+        return;
+    }
+
+    const modeSearch = selectorModalTarget.kind === "search";
+    title.textContent = modeSearch ? "Search bar element" : "Captured element";
+    if (sub) {
+        const bits = [];
+        if (rec.tagName) bits.push(`Tag <${String(rec.tagName).toLowerCase()}>`);
+        const xp = getXPathForPlanDisplay(rec);
+        if (xp) bits.push(`Locator uses: ${rec.identifierType}`);
+        sub.textContent = bits.join(" · ");
+        sub.hidden = bits.length === 0;
+    }
+
+    nameInput.value = rec.displayName || "";
+
+    tbody.innerHTML = "";
+    const xpathFull = getXPathForPlanDisplay(rec);
+    if (xpathFull) {
+        const trXp = document.createElement("tr");
+        const tdXpN = document.createElement("td");
+        tdXpN.textContent = "XPath";
+        const tdXpV = document.createElement("td");
+        const codeXp = document.createElement("code");
+        codeXp.style.wordBreak = "break-all";
+        codeXp.style.fontSize = "0.85em";
+        codeXp.textContent = xpathFull;
+        tdXpV.appendChild(codeXp);
+        trXp.appendChild(tdXpN);
+        trXp.appendChild(tdXpV);
+        tbody.appendChild(trXp);
+    }
+
+    const attrs = rec.attributes && typeof rec.attributes === "object" ? rec.attributes : {};
+    const entries = Object.entries(attrs);
+    if (entries.length === 0 && !xpathFull) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 2;
+        const em = document.createElement("em");
+        em.textContent = "No DOM attributes recorded.";
+        td.appendChild(em);
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+    } else {
+        for (const [k, v] of entries.sort(([a], [b]) => a.localeCompare(b))) {
+            const tr = document.createElement("tr");
+            const tdN = document.createElement("td");
+            tdN.textContent = k;
+            const tdV = document.createElement("td");
+            tdV.textContent = v;
+            tr.appendChild(tdN);
+            tr.appendChild(tdV);
+            tbody.appendChild(tr);
+        }
+        if (entries.length === 0 && xpathFull) {
+            const tr = document.createElement("tr");
+            const td = document.createElement("td");
+            td.colSpan = 2;
+            const em = document.createElement("em");
+            em.textContent = "No other DOM attributes on this element.";
+            td.appendChild(em);
+            tr.appendChild(td);
+            tbody.appendChild(tr);
+        }
+    }
+}
+
+/**
+ * @returns {void}
+ */
+function deleteModalEntry() {
+    if (!selectorModalTarget) return;
+    const t = selectorModalTarget;
+    if (t.kind === "search") {
+        scrapePlan.site.searchInputSelector = null;
+    } else if (t.kind === "openResult") {
+        scrapePlan.navigation.openResultSelectors.splice(t.index, 1);
+    } else if (t.kind === "textFields") {
+        scrapePlan.extraction.textFields.splice(t.index, 1);
+    } else if (t.kind === "imageFields") {
+        scrapePlan.extraction.imageFields.splice(t.index, 1);
+    }
+    closeSelectorModal();
+    refreshCapturedSelectorsUi();
+}
+
+/**
+ * @returns {void}
+ */
+function initSelectorDetailInteractions() {
+    const dlg = document.getElementById("selector_detail_modal");
+    const saveBtn = document.getElementById("selector_detail_save");
+    const delBtn = document.getElementById("selector_detail_delete");
+    const closeBtn = document.getElementById("selector_detail_close_btn");
+    const closeX = document.getElementById("selector_detail_close_x");
+
+    const xpSearch = document.getElementById("search_bar_xpath");
+    if (xpSearch) {
+        xpSearch.addEventListener("mouseenter", () => {
+            const sel = scrapePlan.site.searchInputSelector;
+            if (!sel) return;
+            const p = getXPathForPlanDisplay(sel);
+            if (p) sendToGuest("highlight-xpath", p);
+        });
+        xpSearch.addEventListener("mouseleave", () => sendToGuest("clear-xpath-highlight"));
+        xpSearch.addEventListener("click", () => openSelectorModal({ kind: "search" }));
+    }
+    const searchDetailsBtn = document.getElementById("search_bar_details_btn");
+    if (searchDetailsBtn) {
+        searchDetailsBtn.addEventListener("click", () => openSelectorModal({ kind: "search" }));
+    }
+
+    if (saveBtn) {
+        saveBtn.addEventListener("click", () => {
+            const nameInput = document.getElementById("selector_detail_name");
+            const rec = getDescriptorRecordForModal(selectorModalTarget);
+            if (rec && nameInput) rec.displayName = nameInput.value.trim();
+            closeSelectorModal();
+            refreshCapturedSelectorsUi();
+        });
+    }
+    if (delBtn) delBtn.addEventListener("click", () => deleteModalEntry());
+    if (closeBtn) closeBtn.addEventListener("click", () => closeSelectorModal());
+    if (closeX) closeX.addEventListener("click", () => closeSelectorModal());
+    if (dlg) {
+        dlg.addEventListener("click", (e) => {
+            if (e.target === dlg) closeSelectorModal();
+        });
+        dlg.addEventListener("close", () => {
+            selectorModalTarget = null;
+        });
+    }
+}
+
+initSelectorDetailInteractions();
+
+// =============================================================================
 // IPC — main process → host renderer (forwarded guest events)
 // =============================================================================
 ipcRenderer.on("wrong-search", (_event, detail) => {
@@ -848,15 +1170,22 @@ ipcRenderer.on("wrong-search", (_event, detail) => {
  * @param {string} arg XPath for the search input element.
  * @returns {void}
  */
-ipcRenderer.on('searchXPath', (event, arg) => {
+ipcRenderer.on('searchXPath', (_event, arg) => {
     const selector = normalizeSelectorPayload(arg, "search_input");
     scrapePlan.site.startMode = "searchInput";
-    scrapePlan.site.searchInputSelector = buildSelectorDescriptor(
-        "search_input",
-        selector.identifierType,
-        selector.identifierValue
-    );
+    scrapePlan.site.searchInputSelector = {
+        ...buildSelectorDescriptor(
+            "search_input",
+            selector.identifierType,
+            selector.identifierValue
+        ),
+        xpath: selector.xpath != null ? selector.xpath : null,
+        attributes: selector.attributes || {},
+        tagName: selector.tagName || "",
+        displayName: selector.displayName || "",
+    };
     syncPlanSettingsFormFromPlan();
+    refreshCapturedSelectorsUi();
 })
 
 /**
@@ -870,7 +1199,7 @@ ipcRenderer.on('searchXPath', (event, arg) => {
 ipcRenderer.on('linkXpathRenderer', (_event, arg) => {
     const selector = normalizeSelectorPayload(arg, `link_${scrapePlan.navigation.openResultSelectors.length + 1}`);
     if (addNavigationField("openResultSelectors", selector)) {
-        appendSelectorUiLine(`openResult -> ${selector.identifierType}: ${selector.identifierValue}`);
+        refreshCapturedSelectorsUi();
     }
 })
 
@@ -885,8 +1214,7 @@ ipcRenderer.on('linkXpathRenderer', (_event, arg) => {
 ipcRenderer.on('textXpathRenderer', (_event, arg) => {
     const selector = normalizeSelectorPayload(arg, `text_${scrapePlan.extraction.textFields.length + 1}`);
     if (!addExtractionField("textFields", selector)) return;
-    const added = scrapePlan.extraction.textFields[scrapePlan.extraction.textFields.length - 1];
-    appendSelectorUiLine(`${added.key} -> ${added.identifierType}: ${added.identifierValue}`);
+    refreshCapturedSelectorsUi();
 })
 
 /**
@@ -900,10 +1228,7 @@ ipcRenderer.on('textXpathRenderer', (_event, arg) => {
 ipcRenderer.on('imgXpathRenderer', (_event, arg) => {
     const selector = normalizeSelectorPayload(arg, `images_${scrapePlan.extraction.imageFields.length + 1}`);
     if (!addExtractionField("imageFields", selector, { attr: selector.attr || "src" })) return;
-    const added = scrapePlan.extraction.imageFields[scrapePlan.extraction.imageFields.length - 1];
-    appendSelectorUiLine(
-        `${added.key} -> ${added.identifierType}: ${added.identifierValue} (attr: ${added.attr || "src"})`
-    );
+    refreshCapturedSelectorsUi();
 })
 
 /**

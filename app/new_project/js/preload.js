@@ -77,23 +77,42 @@ function escapeCssToken(value) {
 }
 
 /**
+ * All DOM attributes on the element (name → value).
+ *
+ * @param {Element} el
+ * @returns {Record<string, string>}
+ */
+function collectDomAttributes(el) {
+    const attrs = {};
+    if (!el || !el.attributes) return attrs;
+    for (let i = 0; i < el.attributes.length; i++) {
+        const a = el.attributes[i];
+        attrs[a.name] = a.value;
+    }
+    return attrs;
+}
+
+/**
  * Builds a selector payload that prefers id/class/css when stable, with XPath fallback.
  *
  * @param {Element} el
  * @param {{"src"|"href"|null} [forcedAttr]}
- * @returns {{ identifierType: "xpath"|"css"|"id"|"className", identifierValue: string, xpath: string|null, attr?: "src"|"href" }}
+ * @returns {{ identifierType: "xpath"|"css"|"id"|"className", identifierValue: string, xpath: string|null, attr?: "src"|"href", attributes: Record<string, string>, tagName: string }}
  */
 function buildSelectorPayload(el, forcedAttr = null) {
     const xpath = createXPathFromElement(el);
+    const attributes = collectDomAttributes(el);
+    const tagName = el.tagName || "";
+    const base = { xpath, attributes, tagName };
     const id = (el.getAttribute('id') || '').trim();
     if (id && document.querySelectorAll(`#${escapeCssToken(id)}`).length === 1) {
-        return { identifierType: 'id', identifierValue: id, xpath, ...(forcedAttr ? { attr: forcedAttr } : {}) };
+        return { identifierType: 'id', identifierValue: id, ...base, ...(forcedAttr ? { attr: forcedAttr } : {}) };
     }
 
     const classTokens = (el.getAttribute('class') || '').split(/\s+/).filter(Boolean);
     for (const token of classTokens) {
         if (document.querySelectorAll(`.${escapeCssToken(token)}`).length === 1) {
-            return { identifierType: 'className', identifierValue: token, xpath, ...(forcedAttr ? { attr: forcedAttr } : {}) };
+            return { identifierType: 'className', identifierValue: token, ...base, ...(forcedAttr ? { attr: forcedAttr } : {}) };
         }
     }
 
@@ -102,12 +121,12 @@ function buildSelectorPayload(el, forcedAttr = null) {
         return {
             identifierType: 'css',
             identifierValue: `[data-testid="${dataTestId.replace(/"/g, '\\"')}"]`,
-            xpath,
+            ...base,
             ...(forcedAttr ? { attr: forcedAttr } : {}),
         };
     }
 
-    return { identifierType: 'xpath', identifierValue: xpath || '', xpath, ...(forcedAttr ? { attr: forcedAttr } : {}) };
+    return { identifierType: 'xpath', identifierValue: xpath || '', ...base, ...(forcedAttr ? { attr: forcedAttr } : {}) };
 }
 
 // =============================================================================
@@ -232,6 +251,82 @@ ipcRenderer.on('ctxmenu-select-img', () => {
 });
 
 // =============================================================================
+// Host-driven XPath highlight (sidebar hover) — same visual style as hover mask
+// =============================================================================
+/** @type {HTMLDivElement|null} */
+let hostHighlightOverlay = null;
+
+/**
+ * @param {string} xpath
+ * @returns {Element|null}
+ */
+function getElementByXPath(xpath) {
+    if (!xpath || typeof xpath !== "string") return null;
+    try {
+        const r = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+        const n = r.singleNodeValue;
+        return n && /** @type {any} */ (n).nodeType === 1 ? /** @type {Element} */ (n) : null;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * @param {HTMLDivElement} overlay
+ * @param {Element} el
+ * @returns {void}
+ */
+function positionHostOverlay(overlay, el) {
+    const rect = el.getBoundingClientRect();
+    overlay.style.left = (rect.left + window.scrollX) + "px";
+    overlay.style.top = (rect.top + window.scrollY) + "px";
+    overlay.style.width = rect.width + "px";
+    overlay.style.height = rect.height + "px";
+}
+
+/**
+ * @returns {void}
+ */
+function clearHostXPathHighlight() {
+    if (hostHighlightOverlay && hostHighlightOverlay.parentNode) {
+        hostHighlightOverlay.parentNode.removeChild(hostHighlightOverlay);
+    }
+    hostHighlightOverlay = null;
+    const hover = document.getElementsByClassName("highlight-wrap")[0];
+    if (hover) hover.style.visibility = "";
+}
+
+/**
+ * @param {string} xpath
+ * @returns {void}
+ */
+function applyHostXPathHighlight(xpath) {
+    clearHostXPathHighlight();
+    const el = getElementByXPath(xpath);
+    if (!el) return;
+    const hover = document.getElementsByClassName("highlight-wrap")[0];
+    if (hover) hover.style.visibility = "hidden";
+    const hObj = document.createElement("div");
+    hObj.className = "smartfox-host-highlight";
+    hObj.style.position = "absolute";
+    hObj.style.backgroundColor = "#A020F0";
+    hObj.style.opacity = "0.5";
+    hObj.style.pointerEvents = "none";
+    hObj.style.zIndex = "2147483646";
+    document.body.appendChild(hObj);
+    positionHostOverlay(hObj, el);
+    hostHighlightOverlay = hObj;
+}
+
+ipcRenderer.on("highlight-xpath", (_e, xpath) => {
+    applyHostXPathHighlight(typeof xpath === "string" ? xpath : "");
+});
+
+ipcRenderer.on("clear-xpath-highlight", () => {
+    clearHostXPathHighlight();
+});
+
+// =============================================================================
 // Guest page bootstrap (zoom, optional jQuery)
 // =============================================================================
 /**
@@ -262,6 +357,7 @@ window.onload = function () {
  * @returns {void}
  */
 document.addEventListener('mouseover', function (e) {
+    if (hostHighlightOverlay) return;
     updateMask(e.target);
 });
 

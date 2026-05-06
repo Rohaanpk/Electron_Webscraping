@@ -89,9 +89,27 @@
                     </li>
                 </ul>
 
+                <article class="config-panel config-panel--search" id="search_bar_panel">
+                    <h3>Search bar</h3>
+                    <p id="search_bar_empty" class="config-panel__muted"><small>No search input selected. Right-click an <code>&lt;input&gt;</code> in the preview and choose “Select search bar”.</small></p>
+                    <div id="search_bar_active" class="search-bar-active" hidden>
+                        <div class="selector-xpath-block">
+                            <span class="selector-xpath-block__label">XPath</span>
+                            <code id="search_bar_xpath" class="selector-xpath-block__xpath" tabindex="0" role="button" title="Hover to highlight on page; click for details"></code>
+                        </div>
+                        <button type="button" class="secondary outline" id="search_bar_details_btn">Search bar details…</button>
+                    </div>
+                </article>
+
                 <article class="config-panel">
                     <h3>Plan settings</h3>
                     <p><small>Configure how each spreadsheet row is opened before extraction.</small></p>
+
+                    <div class="plan-captured-wrap">
+                        <h4 class="plan-captured-wrap__title">Captured elements <small>(XPath)</small></h4>
+                        <p class="config-panel__muted plan-captured-wrap__hint"><small>Hover an XPath to highlight it on the preview; click for attributes and naming.</small></p>
+                        <ul id="plan_captured_xpaths" class="plan-captured-xpaths"></ul>
+                    </div>
 
                     <label for="plan_name_input">Plan name <small>(optional)</small></label>
                     <input id="plan_name_input" type="text" placeholder="e.g. blackwoods_catalog" autocomplete="off">
@@ -178,6 +196,29 @@
             </div>
         </div>
     </div>
+
+    <dialog id="selector_detail_modal" class="selector-detail-modal" aria-labelledby="selector_detail_title">
+        <article>
+            <header class="selector-detail-modal__header">
+                <h2 id="selector_detail_title">Element</h2>
+                <button type="button" class="selector-detail-modal__close" id="selector_detail_close_x" aria-label="Close">&times;</button>
+            </header>
+            <p id="selector_detail_subtitle" class="selector-detail-modal__subtitle" hidden></p>
+            <div id="selector_detail_attrs_wrap" class="selector-detail-modal__attrs">
+                <table id="selector_detail_attrs_table" class="selector-attrs-table">
+                    <thead><tr><th>Name</th><th>Value</th></tr></thead>
+                    <tbody id="selector_detail_attrs_body"></tbody>
+                </table>
+            </div>
+            <label for="selector_detail_name">Display name <small>(optional)</small></label>
+            <input id="selector_detail_name" type="text" placeholder="e.g. Product title" autocomplete="off">
+            <footer class="selector-detail-modal__footer">
+                <button type="button" class="secondary" id="selector_detail_delete">Remove from plan</button>
+                <button type="button" id="selector_detail_save">Save name</button>
+                <button type="button" class="outline" id="selector_detail_close_btn">Close</button>
+            </footer>
+        </article>
+    </dialog>
 
     <div id="scraping_preview" class="scraping-run" style="display: none;" aria-live="polite">
         <aside class="scraping-run__aside">
