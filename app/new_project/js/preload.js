@@ -360,7 +360,6 @@ document.addEventListener('mouseover', function (e) {
     if (hostHighlightOverlay) return;
     updateMask(e.target);
 });
-
 /**
  * Draws/updates an absolutely-positioned overlay matching the target element's bounding box.
  *
@@ -388,3 +387,4 @@ function updateMask(target) {
     hObj.style.width = rect.width + 'px';
     hObj.style.height = rect.height + 'px';
 }
+
