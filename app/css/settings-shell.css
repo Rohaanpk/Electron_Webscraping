@@ -1,0 +1,117 @@
+/**
+ * Shared settings trigger + modal (landing + new project flows).
+ * Trigger uses a fixed dark chip so the icon stays visible on light pages too.
+ */
+.app-settings-trigger {
+  position: fixed;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  margin: 0;
+  border-radius: var(--pico-border-radius);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #252a38;
+  color: #e8ecf4;
+  box-shadow: 0 0.25rem 0.85rem rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.app-settings-trigger:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: #2f3545;
+  box-shadow: 0 0.35rem 1rem rgba(0, 0, 0, 0.4);
+}
+
+.app-settings-trigger:focus-visible {
+  outline: 2px solid #8fa8ff;
+  outline-offset: 2px;
+}
+
+.app-settings-trigger svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.app-settings-modal {
+  max-width: min(26rem, calc(100vw - 2rem));
+  padding: 0;
+  margin: auto;
+  border: var(--pico-border-width) solid var(--pico-muted-border-color);
+  border-radius: var(--pico-border-radius);
+  background: var(--pico-background-color);
+  color: var(--pico-color);
+  box-shadow: var(--pico-box-shadow);
+}
+
+.app-settings-modal::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
+}
+
+.app-settings-modal article {
+  margin: 0;
+  padding: var(--pico-spacing);
+}
+
+.app-settings-modal header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--pico-spacing);
+  margin-bottom: var(--pico-spacing);
+}
+
+.app-settings-modal header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.app-settings-modal .app-settings-modal__close {
+  flex-shrink: 0;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+  border: none;
+  background: transparent;
+  color: var(--pico-muted-color);
+  border-radius: var(--pico-border-radius);
+  cursor: pointer;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.app-settings-modal .app-settings-modal__close:hover {
+  color: var(--pico-color);
+  background: var(--pico-card-sectioning-background-color);
+}
+
+.app-settings-modal fieldset {
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+
+.app-settings-modal legend {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  padding: 0;
+}
+
+.app-settings-modal fieldset label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-right: 1rem;
+  font-weight: normal;
+}

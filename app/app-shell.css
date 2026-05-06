@@ -45,21 +45,6 @@ body {
   display: block;
 }
 
-.landing__theme {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 0.65rem 1rem;
-  margin-bottom: calc(var(--pico-spacing) * 1.25);
-  font-size: 0.875rem;
-}
-
-.landing__theme-label {
-  font-weight: 600;
-  margin: 0;
-}
-
 .landing__actions {
   max-width: 42rem;
   margin-inline: auto;
