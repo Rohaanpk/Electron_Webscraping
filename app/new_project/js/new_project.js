@@ -17,12 +17,13 @@
 const { ipcRenderer } = require('electron');
 const XLSX = require("xlsx");
 const { By, Builder, Browser, Key } = require('selenium-webdriver');
+const state = require('../js/state');
 
 // =============================================================================
 // DOM references
 // =============================================================================
-var codes = []
-var link = ""
+let codes = state.codes
+let link = state.link
 const webPreview = document.getElementById("web_preview");
 /** @type {ResizeObserver | null} */
 let guestWebviewResizeObserver = null;
@@ -149,7 +150,7 @@ const wbChange = document.getElementById('file_change');
 const savedPlansSelect = document.getElementById('saved_plans_select');
 const planStatus = document.getElementById('plan_status');
 const scrapingList = document.getElementById("scraping_list");
-let savedPlansCache = [];
+let savedPlansCache = state.savedPlansCache;
 
 const planNameInput = document.getElementById('plan_name_input');
 const planStartModeEl = document.getElementById('plan_start_mode');
@@ -173,42 +174,7 @@ const planOutputPathEl = document.getElementById('plan_output_path');
  * Persistence note:
  * - This structure is intentionally JSON/BSON-friendly so it can be saved directly to MongoDB.
  */
-const scrapePlan = {
-    site: {
-        baseUrl: "",
-        startMode: "searchInput", // "searchInput" | "generatedSearchUrl" | "directLink"
-        searchInputSelector: null,
-        generatedSearchUrlTemplate: "",
-        preSearchClickSelectors: [],
-    },
-    navigation: {
-        openResultSelectors: [],
-        variantOptionSelectors: [],
-    },
-    extraction: {
-        textFields: [],
-        imageFields: [],
-        /** Defaults applied when new image fields are added via context menu (if attr not set on element). */
-        defaults: {
-            imageAttr: "src",
-            imageMultiple: true,
-        },
-    },
-    input: {
-        codeColumn: "A",
-        linkColumnName: "LINKS",
-        codeColumnName: "SKU",
-    },
-    output: {
-        format: "xlsx",
-        filePath: "./Output.xlsx",
-    },
-    behavior: {
-        waitMs: 20000,
-        retryCount: 2,
-        continueOnRowError: true,
-    }
-};
+const scrapePlan = state.scrapePlan;
 
 // =============================================================================
 // Selector helpers — normalize, dedupe, and append to scrapePlan / UI
@@ -652,6 +618,7 @@ function applyPlanData(rawPlan) {
 
     if (scrapePlan.site.baseUrl) {
         link = scrapePlan.site.baseUrl;
+        state.link = link;
         const inputUrl = document.getElementById("input_url");
         if (inputUrl) inputUrl.value = scrapePlan.site.baseUrl;
         document.getElementById("url_heading").innerHTML = scrapePlan.site.baseUrl;
@@ -674,6 +641,7 @@ async function refreshSavedPlans() {
     setPlanStatus("Loading plans...");
     try {
         savedPlansCache = await ipcRenderer.invoke('loadScrapePlans');
+        state.savedPlansCache = savedPlansCache;
         savedPlansSelect.innerHTML = "";
         if (!savedPlansCache.length) {
             const opt = document.createElement("option");
@@ -732,6 +700,7 @@ function applySelectedPlan() {
  */
 async function actOnXLSX(file) {
     codes = [];
+    state.codes = codes;
     const fileReader = new FileReader();
 
     const data = await new Promise((resolve, reject) => {
@@ -821,6 +790,7 @@ function changeSiteLink() {
  */
 function loadScrapeSelectPage() {
     link = document.getElementById("input_url").value;
+    state.link = link;
     scrapePlan.site.baseUrl = link;
     document.getElementById("web_preview").setAttribute('src', link)
     revealSelectorPrep();
