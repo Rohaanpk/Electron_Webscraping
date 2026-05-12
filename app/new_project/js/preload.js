@@ -132,6 +132,36 @@ function buildSelectorPayload(el, forcedAttr = null) {
 // =============================================================================
 // Context-menu modes — element validation before IPC
 // =============================================================================
+
+/** Tags that cannot carry scrapeable text in the usual sense. */
+const TEXT_SCRAPE_VOID_TAGS = new Set([
+    'AREA', 'BASE', 'BR', 'COL', 'EMBED', 'HR', 'IMG', 'INPUT', 'LINK',
+    'META', 'PARAM', 'SOURCE', 'TRACK', 'WBR',
+]);
+
+/**
+ * @param {"search"|"link"|"text"|"image"} mode
+ * @param {string} [hint]
+ * @returns {void}
+ */
+function sendWrongSelection(mode, hint) {
+    ipcRenderer.send('wrongSearchClick', {
+        mode,
+        hint: hint != null && hint !== '' ? String(hint) : '',
+    });
+}
+
+/**
+ * @param {Element} el
+ * @returns {boolean}
+ */
+function hasTextToScrape(el) {
+    if (el.tagName === 'TEXTAREA') {
+        return ((/** @type {HTMLTextAreaElement} */ (el)).value || '').trim().length > 0;
+    }
+    return (el.textContent || '').trim().length > 0;
+}
+
 /**
  * Search bar mode: only `<input>` is accepted.
  *
@@ -143,30 +173,44 @@ function applySearchBarSelection(el) {
     if (el.tagName === 'INPUT') {
         ipcRenderer.send('searchXpath', selector);
     } else {
-        ipcRenderer.send('wrongSearchClick', selector.xpath || selector.identifierValue);
+        sendWrongSelection('search', el.tagName || 'element');
     }
 }
 
 /**
- * Product link: any element’s stable selector is used as a navigation target.
+ * Product link: `<a href="...">` only (navigation target).
  *
  * @param {Element} el The element the user right-clicked.
  * @returns {void}
  */
 function applyLinkSelection(el) {
+    if (el.tagName !== 'A') {
+        sendWrongSelection('link', el.tagName || 'element');
+        return;
+    }
+    const href = (el.getAttribute('href') || '').trim();
+    if (!href) {
+        sendWrongSelection('link', 'missing href');
+        return;
+    }
     const selector = buildSelectorPayload(el);
     ipcRenderer.send('linkXpathMain', selector);
 }
 
 /**
- * Text scrape: elements with empty `innerHTML` are rejected.
+ * Text scrape: void-like tags and empty visible text are rejected.
  *
  * @param {Element} el The element the user right-clicked.
  * @returns {void}
  */
 function applyTextSelection(el) {
-    if (el.innerHTML === '') {
-        ipcRenderer.send('wrongSearchClick', el.tagName);
+    const tag = el.tagName;
+    if (TEXT_SCRAPE_VOID_TAGS.has(tag)) {
+        sendWrongSelection('text', tag);
+        return;
+    }
+    if (!hasTextToScrape(el)) {
+        sendWrongSelection('text', 'no visible text');
         return;
     }
     const selector = buildSelectorPayload(el);
@@ -186,7 +230,7 @@ function applyImageSelection(el) {
     if (tag === 'IMG' || tag === 'A') {
         ipcRenderer.send('imgXpathMain', selector);
     } else {
-        ipcRenderer.send('wrongSearchClick', selector.xpath || selector.identifierValue);
+        sendWrongSelection('image', tag || 'element');
     }
 }
 

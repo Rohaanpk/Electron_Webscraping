@@ -18,132 +18,23 @@ const { ipcRenderer } = require('electron');
 const XLSX = require("xlsx");
 const { By, Builder, Browser, Key } = require('selenium-webdriver');
 const state = require('../js/state');
+const {
+    initGuestWebview,
+    sendToGuest,
+    burstSyncGuestWebviewBounds,
+    showGuestToast,
+} = require('../js/guest-webview');
 
 // =============================================================================
 // DOM references
 // =============================================================================
 let codes = state.codes
 let link = state.link
-const webPreview = document.getElementById("web_preview");
-/** @type {ResizeObserver | null} */
-let guestWebviewResizeObserver = null;
 
-/**
- * Sends a channel message to the guest `<webview>` preload (`preload.js`).
- *
- * @param {string} channel
- * @param {...unknown} args
- * @returns {void}
- */
-function sendToGuest(channel, ...args) {
-    if (!webPreview || typeof webPreview.send !== "function") return;
-    try {
-        webPreview.send(channel, ...args);
-    } catch (err) {
-        console.warn("Guest webview IPC failed:", channel, err);
-    }
-}
+initGuestWebview(document.getElementById("web_preview"));
 
 /** @type {{ kind: "search" } | { kind: "openResult"; index: number } | { kind: "textFields"; index: number } | { kind: "imageFields"; index: number } | null} */
 let selectorModalTarget = null;
-
-/**
- * Returns the layout box that should define guest `<webview>` bounds.
- *
- * @returns {HTMLElement | null}
- */
-function getGuestWebviewHost() {
-    return document.querySelector("#select_data .select-data-webview-host");
-}
-
-/**
- * Electron `<webview>` often ignores percentage/flex sizing for the embedded page.
- * Copy the host element's border box to explicit pixel width/height on the tag.
- *
- * @returns {void}
- */
-function syncGuestWebviewBounds() {
-    const host = getGuestWebviewHost();
-    if (!host || !webPreview) return;
-    /* Prefer layout box from border-box; fall back to clientWidth/Height for sub-pixel stability */
-    const r = host.getBoundingClientRect();
-    let w = Math.max(1, Math.round(r.width));
-    let h = Math.max(1, Math.round(r.height));
-    if (h <= 2 || w <= 2) {
-        w = Math.max(w, host.clientWidth || 1);
-        h = Math.max(h, host.clientHeight || 1);
-    }
-    webPreview.style.boxSizing = "border-box";
-    /* Do not set display:block — Electron's <webview> needs default flex so the guest iframe fills. */
-    webPreview.style.width = `${w}px`;
-    webPreview.style.height = `${h}px`;
-}
-
-/**
- * Subscribes to host size changes so the guest webview stays flush with `.select-data-webview-host`.
- *
- * @returns {void}
- */
-function attachGuestWebviewResizeObserver() {
-    const host = getGuestWebviewHost();
-    if (!host || guestWebviewResizeObserver || typeof ResizeObserver === "undefined") return;
-    guestWebviewResizeObserver = new ResizeObserver(() => {
-        syncGuestWebviewBounds();
-    });
-    guestWebviewResizeObserver.observe(host);
-}
-
-/**
- * Re-sync several frames — layout after `display:none` → `flex` often settles late.
- *
- * @returns {void}
- */
-function burstSyncGuestWebviewBounds() {
-    let frames = 0;
-    const tick = () => {
-        syncGuestWebviewBounds();
-        if (++frames < 20) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-}
-
-attachGuestWebviewResizeObserver();
-if (webPreview) {
-    webPreview.addEventListener("dom-ready", () => {
-        syncGuestWebviewBounds();
-        burstSyncGuestWebviewBounds();
-    });
-    webPreview.addEventListener("did-stop-loading", () => {
-        syncGuestWebviewBounds();
-        burstSyncGuestWebviewBounds();
-    });
-}
-window.addEventListener("resize", syncGuestWebviewBounds);
-syncGuestWebviewBounds();
-
-/** @type {ReturnType<typeof setTimeout> | null} */
-let guestToastHideTimer = null;
-
-/**
- * Brief toast over the guest webview when the user picks an invalid element for the current mode.
- *
- * @param {string} message
- * @returns {void}
- */
-function showGuestToast(message) {
-    const el = document.getElementById("guest_feedback_toast");
-    if (!el) return;
-    el.textContent = message;
-    el.hidden = false;
-    requestAnimationFrame(() => el.classList.add("guest-feedback-toast--visible"));
-    clearTimeout(guestToastHideTimer);
-    guestToastHideTimer = setTimeout(() => {
-        el.classList.remove("guest-feedback-toast--visible");
-        guestToastHideTimer = setTimeout(() => {
-            el.hidden = true;
-        }, 230);
-    }, 4200);
-}
 
 const wbInput = document.getElementById('file_input');
 const wbChange = document.getElementById('file_change');
@@ -1123,13 +1014,40 @@ initSelectorDetailInteractions();
 // =============================================================================
 // IPC — main process → host renderer (forwarded guest events)
 // =============================================================================
+/** Labels aligned with context menu items in `electron/ipc/register.js`. */
+const CTX_MENU_MODE_LABEL = {
+    search: 'Search bar',
+    link: 'Product link',
+    text: 'Text to scrape',
+    image: 'Image',
+};
+
+/**
+ * @param {unknown} detail Legacy string or `{ mode, hint }` from guest preload.
+ * @returns {string}
+ */
+function formatWrongSelectionToast(detail) {
+    if (detail && typeof detail === 'object' && !Array.isArray(detail)) {
+        const mode = /** @type {{ mode?: string, hint?: string }} */ (detail).mode;
+        const hintRaw = /** @type {{ mode?: string, hint?: string }} */ (detail).hint;
+        const label = mode && CTX_MENU_MODE_LABEL[/** @type {keyof typeof CTX_MENU_MODE_LABEL} */ (mode)]
+            ? CTX_MENU_MODE_LABEL[/** @type {keyof typeof CTX_MENU_MODE_LABEL} */ (mode)]
+            : 'This picker';
+        const hint = hintRaw != null && String(hintRaw).trim() !== '' ? String(hintRaw).trim() : '';
+        if (hint) {
+            return `${label}: invalid target (${hint}). Pick another element.`;
+        }
+        return `${label}: invalid target. Pick another element.`;
+    }
+    const hint = detail != null && detail !== '' ? String(detail) : '';
+    if (hint) {
+        return `Invalid target (${hint}). Pick another element.`;
+    }
+    return 'Invalid target for this mode. Pick another element.';
+}
+
 ipcRenderer.on("wrong-search", (_event, detail) => {
-    const hint = detail != null && detail !== "" ? String(detail) : "";
-    showGuestToast(
-        hint
-            ? `That element does not match this mode (${hint}). Try another element.`
-            : "That element does not match this mode. Right-click a different element."
-    );
+    showGuestToast(formatWrongSelectionToast(detail));
 });
 
 /**
